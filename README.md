@@ -7,23 +7,24 @@ Nevertheless, the are cases that inside the given range, there are some places w
 In this library, i propose a solution that makes possible the adaption of the discretized points with an automated way. The goal is to minimize the mean distance for every kind of distribution while remaining a steady number of discrete points.
 
 Trying to achieve:
-1.  Minimum Mean Error ($ME$) for any distribution.
+1.  Minimum Mean Error (_ME_) for any distribution.
     * Provide the best possible precision.
     * Adapting to unknown to the user distributions.
-2.  Stable number of discrete points(size $K$).
-3.  Work for any dimensional space(number of dimensions $n$).
+2.  Stable number of discrete points(size _K_).
+3.  Work for any dimensional space(number of dimensions __name__).
 4.  Sub-linear complexity for search, insert and delete.
 
 **Note:** The nearest neighbor search is not a feature of this solution, but the algorithm can easily be combined with another package for this, like [FLANN](https://github.com/mariusmuja/flann).
 
 
 # Architecture
-Like the most related approaches, i used trees similar to kd-trees to solve this problem. Unlike kd-trees that have branching factor = $2$, this tree splits each axis into $2$ which gives a branching factor equal to branching factor = $2^n$. Each node represents a discrete point in the middle of an area that is assigned to it. By extending nodes, the precision is increasing.  Also nodes with located in areas out of interest get cut in order to maintain the number of discrete points stable. With this procedure the tree tries to adapt to the distribution of the points that user is searching.
+Like the most related approaches, i used trees similar to kd-trees to solve this problem. Unlike kd-trees that have branching factor = _2_, this tree splits each axis into _2_ which gives a branching factor equal to branching factor = <a href="https://www.codecogs.com/eqnedit.php?latex=2^n" target="_blank"><img src="https://latex.codecogs.com/gif.latex?2^n" title="2^n" /></a> . Each node represents a discrete point in the middle of an area that is assigned to it. By extending nodes, the precision is increasing.  Also nodes with located in areas out of interest get cut in order to maintain the number of discrete points stable. With this procedure the tree tries to adapt to the distribution of the points that user is searching.
 
 ## Initialization
 The starting tree is uniform and full grown until the level that brings us closest and below to the requested size. The size of the the full grown tree until a given level is computed by the following formula:
 
-$size = \sum_{i=0}^{level}{2^{i*n}}$
+<a href="https://www.codecogs.com/eqnedit.php?latex=size&space;=&space;\sum_{i=0}^{level}{2^{i*n}}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?size&space;=&space;\sum_{i=0}^{level}{2^{i*n}}" title="size = \sum_{i=0}^{level}{2^{i*n}}" /></a>
+
 
 Some examples:    
 
@@ -36,10 +37,10 @@ Some examples:
 |5|1| 33| 1057| 33825| 1082401|
 
 ## Adaption
-Each node keeps a record of the total error it collected from the searches in its assigned area. The average of the total error of each node is the $ME$. This algorithm tries to find a delicate balance between precision and size in order to give the minimum $ME$. The following two competitive mechanisms are applied repeatedly for this purpose until the balance is achieved.
+Each node keeps a record of the total error it collected from the searches in its assigned area. The average of the total error of each node is the _ME_. This algorithm tries to find a delicate balance between precision and size in order to give the minimum _ME_. The following two competitive mechanisms are applied repeatedly for this purpose until the balance is achieved.
 
 *   #### Expanding nodes
-    Nodes with high total error are the first candidates of expanding. Expanding those nodes will add $2^n$ new different nodes on this area. After that the total error on this area drops a reasonable [amount](link to expansion limits). The rate of the adaption is same as a binary search, something that minimize the loss of the adapting procedure.  
+    Nodes with high total error are the first candidates of expanding. Expanding those nodes will add _2^n_ new different nodes on this area. After that the total error on this area drops a reasonable [amount](link to expansion limits). The rate of the adaption is same as a binary search, something that minimize the loss of the adapting procedure.  
 
 *   #### Cutting branches
     Because it is very important to keep a pretty stable size, nodes that contribute the least, has to be cut to maintain the right size and to make space for more expansions to be done. Usually, nodes with low total error values are the ones that need cut. But selecting a node to be cut is not as straightforward as it seems to be. Simply cutting those with the lowest values is not optimal because usually the reason of this low value is an expansion made earlier to reduce a higher one. Cutting this node will free will lead to a very high value that will be expanded right after and this will happen repeatedly until the end. So we have to be careful about what results this cut is going to bring.
