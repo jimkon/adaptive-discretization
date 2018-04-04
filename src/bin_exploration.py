@@ -165,6 +165,9 @@ class Exploration_tree:
         self._root.recursive_collection(res, func, traverse_cond_func, collect_cond_func)
         return res
 
+    def get_values(self):
+        return self.recursive_traversal(func=(lambda node: node.get_value()))
+
     def get_prunable_nodes(self):
         return self.recursive_traversal(collect_cond_func=(lambda node: node.is_leaf()))
 
@@ -218,8 +221,9 @@ class Exploration_tree:
 
     def plot(self, save=False, path='/home/jim/Desktop/dip/Adaptation-of-Action-Space-for-Reinforcement-Learning/results/pics'):
         nodes = self.get_nodes()
-        # plt.figure()
-        # print('nodes to plot:', len(nodes))
+        plt.figure()
+        print('nodes to plot:', len(nodes))
+        max_level = np.max(list(node.get_level() for node in nodes))
         plt.title('tree size={}'.format(len(nodes)))
         for node in nodes:
             parent, child = node.get_connection_with_parent()
@@ -233,8 +237,14 @@ class Exploration_tree:
             #     r = 255
 
             if self._dimensions == 1:
-                x = [child[0], parent[0]]
-                y = [node._level, node._level - 1]
+                if node.is_root():
+                    x = [child[0]]
+                    y = [node._level]
+                else:
+                    x = [child[0], parent[0]]
+                    y = [node._level, node._level - 1]
+
+                plt.yticks(range(max_level + 1))
 
                 plt.plot([x, x], [-0.1, -0.2], '#000000', linewidth=0.5)
 
@@ -245,10 +255,10 @@ class Exploration_tree:
                 plt.plot([child[0], child[0]], [-0.1, -0.12], '#000000', linewidth=.5)
                 plt.plot([-0.1, -0.12], [child[1], child[1]], '#000000', linewidth=.5)
 
-            plt.plot(x, y,
-                     '#{:02x}00{:02x}'.format(r, b), linewidth=0.2)
+            plt.plot(x, y, 'm-', linewidth=0.2)
+            size = 2.1 * (1 + max_level - node.get_level())
             plt.plot(x[0], y[0],
-                     '#{:02x}00{:02x}'.format(r, b), marker='.')
+                     '#{:02x}00{:02x}'.format(r, b), marker='.', markersize=size)
 
         # if self._dimensions == 1:
         #     # f = 0.1
@@ -274,13 +284,13 @@ class Exploration_tree:
 
         # plt.legend()
         plt.grid(True)
-        plt.xlim(-.1, 1.1)
+        plt.xlim(-.05, 1.05)
         if save:
             plt.savefig("{}/a{}.png".format(path, self.SAVE_ID))
             self.SAVE_ID += 1
         else:
             plt.show()
-        plt.gcf().clear()
+        # plt.gcf().clear()
 
     @staticmethod
     def compute_level(n, branches_of_each_node):
