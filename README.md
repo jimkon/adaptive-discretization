@@ -25,6 +25,7 @@ The starting tree is uniform and full grown until the level that brings us close
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=size&space;=&space;\sum_{i=0}^{level}{2^{i*n}}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?size&space;=&space;\sum_{i=0}^{level}{2^{i*n}}" title="size = \sum_{i=0}^{level}{2^{i*n}}" /></a>
 
+[Examples and graphs for initialization](https://github.com/jimkon/Adaptive-Discretization/blob/master/visualizations/initialization.ipynb)
 
 Some examples:    
 
