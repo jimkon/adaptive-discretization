@@ -222,7 +222,7 @@ class Exploration_tree:
     def plot(self, save=False, path='/home/jim/Desktop/dip/Adaptation-of-Action-Space-for-Reinforcement-Learning/results/pics'):
         nodes = self.get_nodes()
         plt.figure()
-        print('nodes to plot:', len(nodes))
+        # print('nodes to plot:', len(nodes))
         max_level = np.max(list(node.get_level() for node in nodes))
         plt.title('tree size={}'.format(len(nodes)))
         for node in nodes:

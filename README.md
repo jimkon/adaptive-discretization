@@ -18,24 +18,19 @@ Trying to achieve:
 
 
 # Architecture
-Like the most related approaches, i used trees similar to kd-trees to solve this problem. Unlike kd-trees that have branching factor = _2_, this tree splits each axis into _2_ which gives a branching factor equal to branching factor = <a href="https://www.codecogs.com/eqnedit.php?latex=2^n" target="_blank"><img src="https://latex.codecogs.com/gif.latex?2^n" title="2^n" /></a> . Each node represents a discrete point in the middle of an area that is assigned to it. By extending nodes, the precision is increasing.  Also nodes with located in areas out of interest get cut in order to maintain the number of discrete points stable. With this procedure the tree tries to adapt to the distribution of the points that user is searching.
+Like the most related approaches, i used trees similar to kd-trees to solve this problem. Unlike kd-trees that have branching factor = _2_, this tree splits each axis into _2_ which gives a branching factor equal to branching factor = _2^n_. Each node represents a discrete point in the middle of an area that is assigned to it. By extending nodes, the precision is increasing.  Also nodes with located in areas out of interest get cut in order to maintain the number of discrete points stable. With this procedure the tree tries to adapt to the distribution of the points that user is searching.
+
+Another thing that is worse mentioning is that this architecture is set to work with __unit__ n-dimensional cubes. In other words the ranges of the values of the points is fixed to (0, 1). The components of each point is searched are forced in this range. The reason for this is because it was way easier to implement with a fixed range rather than caring about all the different ranges for each axis. Transferring form/to another range is very simple and can be done through the following 2 operations:   
+Suppose __a__,__b__ is the lower and higher limits respectively of the space that __p__ belongs, with __a__!=__b__.   
+__p_in__ = (__p__-__a__)/(__b__-__a__)
+__p_out__ = (__b__-__a__)*(__p__-__a__)
 
 ## Initialization
-The starting tree is uniform and full grown until the level that brings us closest and below to the requested size. The size of the the full grown tree until a given level is computed by the following formula:
+The starting tree is uniform and full grown until the level that brings us closest and below to the requested size. On the next few steps the tree will expand to the requested size. The loss that come from this procedure is very little because the expansion is very quick.  But it is a good idea to choose a size close to one of the initial sizes to minimize this.
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=size&space;=&space;\sum_{i=0}^{level}{2^{i*n}}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?size&space;=&space;\sum_{i=0}^{level}{2^{i*n}}" title="size = \sum_{i=0}^{level}{2^{i*n}}" /></a>
+[More and graphs for initialization](https://github.com/jimkon/Adaptive-Discretization/blob/master/visualizations/initialization.ipynb)
 
-[Examples and graphs for initialization](https://github.com/jimkon/Adaptive-Discretization/blob/master/visualizations/initialization.ipynb)
 
-Some examples:    
-
-|dims\level| 1 | 2 | 3 | 4 | 5 |   
-| --- | :---: | :---: | :---: | :---: | :---: |
-|1|1| 3| 7| 15| 31|
-|2|1| 5| 21| 85| 341|
-|3|1| 9| 73| 585| 4681|
-|4|1| 17| 273| 4369| 69905|
-|5|1| 33| 1057| 33825| 1082401|
 
 ## Adaption
 Each node keeps a record of the total error it collected from the searches in its assigned area. The average of the total error of each node is the _ME_. This algorithm tries to find a delicate balance between precision and size in order to give the minimum _ME_. The following two competitive mechanisms are applied repeatedly for this purpose until the balance is achieved.
