@@ -4,7 +4,7 @@ Discretizating a space with a fixed number of points is usually trivial. Most of
 Nevertheless, the are cases that inside the given range, there are some places with higher interest. These places can be specific ranges that we search inside more often which make the uniform discretization not optimal. An increased resolution in this range would give us a lower average distance on the searches. Another case is when we actually need specific points in the space. In this case, if these points are less than out discrete ones, we could even bring our average distance to zero if we could adapt our discretization.
 
 # My solution (a brief explanation)
-(or a detailed one [here](https://github.com/jimkon/Adaptive-Discretization/new/master/visualizations))
+(or a detailed one [here](https://github.com/jimkon/Adaptive-Discretization/tree/master/visualizations))
 
 In this library, i propose a solution that makes possible the adaption of the discretized points with an automated way. The goal is to minimize the mean distance for every kind of distribution while remaining a steady number of discrete points.
 
@@ -44,4 +44,4 @@ Each node keeps a record of the total error it collected from the searches in it
     Because it is very important to keep a pretty stable size, nodes that contribute the least, has to be cut to maintain the right size and to make space for more expansions to be done. Usually, nodes with low total error values are the ones that need cut. But selecting a node to be cut is not as straightforward as it seems to be. Simply cutting those with the lowest values is not optimal because usually the reason of this low value is an expansion made earlier to reduce a higher one. Cutting this node will free will lead to a very high value that will be expanded right after and this will happen repeatedly until the end. So we have to be careful about what results this cut is going to bring.
 
 
-## More details [here](https://github.com/jimkon/Adaptive-Discretization/new/master/visualizations)
+## More details and graphs [here](https://github.com/jimkon/Adaptive-Discretization/tree/master/visualizations)
