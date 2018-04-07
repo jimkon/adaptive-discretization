@@ -13,7 +13,7 @@ Trying to achieve:
     * Provide the best possible precision.
     * Adapting to unknown to the user distributions.
 2.  Stable number of discrete points(size _K_).
-3.  Work for any dimensional space(number of dimensions __name__).
+3.  Work for any dimensional space(number of dimensions __n__).
 4.  Sub-linear complexity for search, insert and delete.
 
 **Note:** The nearest neighbor search is not a feature of this solution, but the algorithm can easily be combined with another package for this, like [FLANN](https://github.com/mariusmuja/flann).
