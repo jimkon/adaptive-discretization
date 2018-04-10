@@ -7,12 +7,18 @@ class Node:
 
     BRANCH_MATRIX = None
 
-    def __init__(self, location, radius, parent):
+    def __init__(self, location, parent):
         self._value = 0
         self._location = location
-        self._radius = radius
-        self._low_limit = location - radius
-        self._high_limit = location + radius
+
+        if parent is None:
+            self._radius = .5
+        else:
+            self._radius = parent._radius / 2
+
+        self._low_limit = location - self._radius
+        self._high_limit = location + self._radius
+
         self._branches = [None] * len(self.BRANCH_MATRIX)
         self._parent = parent
 
@@ -35,7 +41,6 @@ class Node:
         if not self.is_expandable():
             return []
         new_radius = self._radius / 2
-
         new_nodes = []
         for i in range(len(self.BRANCH_MATRIX)):
             if self._branches[i] is not None:
@@ -44,7 +49,7 @@ class Node:
             new_location = self._location + self.BRANCH_MATRIX[i] * new_radius
 
             try:
-                new_node = Node(new_location, new_radius, self)
+                new_node = Node(new_location, self)
             except Exception as e:
                 self.__achieved_precision_limit = True
                 return new_nodes
@@ -86,8 +91,10 @@ class Node:
     def delete(self):
         if self.is_root():
             return
-        # uncaught exception !!!!
-        self._parent._branches[self._parent._branches.index(self)] = None
+        try:
+            self._parent._branches[self._parent._branches.index(self)] = None
+        except Exception as e:
+            return
 
     def recursive_collection(self, result_array, func, traverse_cond_func, collect_cond_func):
         if not traverse_cond_func(self):

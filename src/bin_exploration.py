@@ -19,7 +19,7 @@ class Exploration_tree:
         Node._init_branch_matrix(self._dimensions)
 
         self._branch_factor = self._dimensions * 2
-        root = Node(np.ones(dims) * 0.5, 0.5, None)
+        root = Node(np.ones(dims) * 0.5, None)
         self._nodes = [root]
         self._root = root
 
@@ -45,69 +45,28 @@ class Exploration_tree:
         return node
 
     def update(self, reward_factor=1):
-        # print('------------------UPDATE---------------')
-        debug_flag = False
-
-        if debug_flag:
-            nodes = list(({'loc': node.get_location()[0], 'v': node.get_value()}
-                          for node in self.get_expendable_nodes()))
-            nodes = sorted(nodes, key=lambda node: node['loc'])
-            points = list(item['loc'] for item in nodes)
-            values = list(item['v'] for item in nodes)
-            max_v = np.max(values)
-            plt.plot(points, values, 'b^--', label='values (max={})'.format(max_v))
-
         # find the expand value
         selected_exp_value = self._expand_threshold_value(reward_factor)
         size_before = self.get_current_size()
+
         # expand nodes with values greater or equal to the choosen one
         self.expand_nodes(selected_exp_value)
         size_after = self.get_current_size()
-        # print('selected values exp index, value', selected_exp_value,
-        #       '# new nodes', size_after - size_before)
 
         # find the cut value
         selected_cut_value = self._prune_threshold_value(max_threshold=selected_exp_value)
         assert selected_cut_value < selected_exp_value, 'cut value > expand value'
 
-        size_before = self.get_current_size()
-        to_cut = self.get_prunable_nodes()
+        prunable = self.get_prunable_nodes()
         # cut the nodes with values below (not equal) to the choosen one
-        for node in to_cut:
+        for node in prunable:
             if node.get_value() <= selected_cut_value:
                 node.delete()
 
         # self.plot()
 
         self._refresh_nodes()
-
-        ######
-        if debug_flag:
-            nodes = list(({'loc': node.get_location()[0], 'v': node.get_value()}
-                          for node in self.get_expendable_nodes()))
-            nodes = sorted(nodes, key=lambda node: node['loc'])
-            points = list(item['loc'] for item in nodes)
-            values = list(item['v'] for item in nodes)
-            max_v = np.max(values)
-            # values = values / max_v
-            # values = apply_func_to_window(values, int(.1 * len(values)), np.average)
-
-            plt.plot([0, 1], [selected_exp_value, selected_exp_value],
-                     'g', label='exp = {}'.format(selected_exp_value))
-
-            plt.plot([0, 1], [selected_cut_value, selected_cut_value],
-                     'r', label='cut = {}'.format(selected_cut_value))
-            plt.plot(points, values, 'mv--', label='values (max={})'.format(max_v))
-            plt.grid(True)
-            plt.legend()
-            plt.show()
-        ####
-
         self._reset_values()
-
-        # size_after = self.get_current_size()
-        # print('selected values cut index, value', selected_cut_value,
-        #       '# deleted nodes', size_after - size_before)
 
     def _prune_threshold_value(self, max_threshold=np.inf):
 
@@ -167,6 +126,9 @@ class Exploration_tree:
 
     def get_values(self):
         return self.recursive_traversal(func=(lambda node: node.get_value()))
+
+    def get_total_value(self):
+        return np.sum(self.get_values())
 
     def get_prunable_nodes(self):
         return self.recursive_traversal(collect_cond_func=(lambda node: node.is_leaf()))
@@ -260,28 +222,6 @@ class Exploration_tree:
             plt.plot(x[0], y[0],
                      '#{:02x}00{:02x}'.format(r, b), marker='.', markersize=size)
 
-        # if self._dimensions == 1:
-        #     # f = 0.1
-        #     # hist, x_h = np.histogram(self.get_points().flatten(), bins=int(len(nodes) * f))
-        #     # x_h = list((x_h[i] + x_h[i - 1]) / 2 for i in range(1, len(x_h)))
-        #     # hist = hist * f / len(nodes)
-        #     # max_h = np.max(hist)
-        #     # hist = hist / max_h
-        #     # plt.plot(x_h, hist,
-        #     #          linewidth=1, label='density (max {})'.format(max_h))
-        #
-        #     v = self.recursive_traversal(func=(lambda node: node.get_value()),
-        #                                  collect_cond_func=lambda node: node.is_expandable())
-        #     x = sorted(self.recursive_traversal(func=(lambda node: node.get_location()),
-        #                                         collect_cond_func=lambda node: node.is_expandable()))
-        #     ev = self._expand_threshold_value(1) - .5
-        #     max_v = np.max(v)
-        #     if max_v != 0:
-        #         plt.plot(x, v /
-        #                  np.max(v) - 1, label='values (max {})'.format(max_v))
-        #         plt.plot([x[0], x[len(x) - 1]], [ev / np.max(v) - 1] * 2,
-        #                  label='expansion threshold = {}(f={})'.format(ev + 0.5, self._get_mean_distance() / self._get_max_mean_distance()), linewidth=0.8)
-
         # plt.legend()
         plt.grid(True)
         plt.xlim(-.05, 1.05)
@@ -290,7 +230,6 @@ class Exploration_tree:
             self.SAVE_ID += 1
         else:
             plt.show()
-        # plt.gcf().clear()
 
     @staticmethod
     def compute_level(n, branches_of_each_node):
