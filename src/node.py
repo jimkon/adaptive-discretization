@@ -19,6 +19,9 @@ class Node:
         self._low_limit = location - self._radius
         self._high_limit = location + self._radius
 
+        if self.BRANCH_MATRIX is None:
+            self._init_branch_matrix(len(location))
+
         self._branches = [None] * len(self.BRANCH_MATRIX)
         self._parent = parent
 
