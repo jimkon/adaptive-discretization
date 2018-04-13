@@ -164,7 +164,3 @@ def plot_3d_tree(tree, node_to_point=(lambda node: node.get_location())):
     ax.set_zlabel('Z')
 
     ax.view_init(40, 10)
-
-
-tree = Tree(1, 1023)
-plot(tree)
