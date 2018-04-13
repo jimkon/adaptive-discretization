@@ -2,14 +2,24 @@
 import numpy as np
 import math
 
-import matplotlib.pyplot as plt
-
 from node import *
 
 
-class Exploration_tree:
+def compute_level(n, branches_of_each_node):
+    total = 0
+    power = -1
+    prev = 0
+    while total <= n:
+        power += 1
+        prev = total
+        total += branches_of_each_node**power
 
-    EXPANSION_VALUE_THRESHOLD = 1
+    if total - n > n - prev:
+        return max(power - 1, 0)
+    return max(power, 0)
+
+
+class Tree:
 
     def __init__(self, dims, avg_nodes, autoprune=True):
 
@@ -25,7 +35,7 @@ class Exploration_tree:
 
         self._min_level = 0
 
-        init_level = Exploration_tree.compute_level(avg_nodes, self._branch_factor)
+        init_level = compute_level(avg_nodes, self._branch_factor)
         for i in range(init_level):
             self.expand_nodes(0)
 
@@ -179,72 +189,6 @@ class Exploration_tree:
         for node in nodes:
             print(node)
 
-    SAVE_ID = 0
-
-    def plot(self, save=False, path='/home/jim/Desktop/dip/Adaptation-of-Action-Space-for-Reinforcement-Learning/results/pics'):
-        nodes = self.get_nodes()
-        plt.figure()
-        # print('nodes to plot:', len(nodes))
-        max_level = np.max(list(node.get_level() for node in nodes))
-        plt.title('tree size={}'.format(len(nodes)))
-        for node in nodes:
-            parent, child = node.get_connection_with_parent()
-            r = 0
-            b = 0
-            # if node.get_value() == 0 and node._parent is not None:
-
-            # if node.is_expandable():
-            #     b = 255
-            # if node.is_leaf():
-            #     r = 255
-
-            if self._dimensions == 1:
-                if node.is_root():
-                    x = [child[0]]
-                    y = [node._level]
-                else:
-                    x = [child[0], parent[0]]
-                    y = [node._level, node._level - 1]
-
-                plt.yticks(range(max_level + 1))
-
-                plt.plot([x, x], [-0.1, -0.2], '#000000', linewidth=0.5)
-
-            else:
-                x = [child[0], parent[0]]
-                y = [child[1], parent[1]]
-
-                plt.plot([child[0], child[0]], [-0.1, -0.12], '#000000', linewidth=.5)
-                plt.plot([-0.1, -0.12], [child[1], child[1]], '#000000', linewidth=.5)
-
-            plt.plot(x, y, 'm-', linewidth=0.2)
-            size = 2.1 * (1 + max_level - node.get_level())
-            plt.plot(x[0], y[0],
-                     '#{:02x}00{:02x}'.format(r, b), marker='.', markersize=size)
-
-        # plt.legend()
-        plt.grid(True)
-        plt.xlim(-.05, 1.05)
-        if save:
-            plt.savefig("{}/a{}.png".format(path, self.SAVE_ID))
-            self.SAVE_ID += 1
-        else:
-            plt.show()
-
-    @staticmethod
-    def compute_level(n, branches_of_each_node):
-        total = 0
-        power = -1
-        prev = 0
-        while total <= n:
-            power += 1
-            prev = total
-            total += branches_of_each_node**power
-
-        if total - n > n - prev:
-            return max(power - 1, 0)
-        return max(power, 0)
-
     @staticmethod
     def correct_point(point):
         new_point = []
@@ -257,45 +201,3 @@ class Exploration_tree:
                 new_point.append(c)
 
         return new_point
-
-
-if __name__ == '__main__':
-    # from bin_exp_test import test, test2
-    # test()
-    dims = 1
-    tree_size = 127
-    iterations = 100
-    max_size = 20
-    tree = Exploration_tree(dims, tree_size)
-    tree.plot()
-    exit()
-    # samples_size_buffer = np.random.random(iterations) * max_size + 10
-    # samples_size_buffer = samples_size_buffer.astype(int)
-    #
-    # samples = None
-    # count = 0
-    # for i in samples_size_buffer:
-    #     print(count, '----new iteration, searches', i)
-    #     count += 1
-    #
-    #     center = 0.1  # if count < 40 else .7
-    #     samples = center + np.abs(np.random.standard_normal((i, dims))) * 0.05
-    #     starting_size = tree.get_current_size()
-    #     for p in samples:
-    #         p = list(p)
-    #         tree.search_nearest_node(p)
-    #
-    #     # ending_size = tree.get_size()
-    #     # # print('added', i, 'points(', samples, '): size before-after', starting_size,
-    #     # #       '-', ending_size, '({})'.format(ending_size - starting_size))
-    #     # if starting_size + i != ending_size:
-    #     #     print('ERROR')
-    #     #     tree.plot()
-    #     #     exit()
-    #     tree.plot()
-    #
-    #     tree.update()
-    #     # tree.plot()
-    #
-    #     # exit()
-    # # tree.plot()

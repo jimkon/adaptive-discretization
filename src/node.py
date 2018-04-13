@@ -124,12 +124,6 @@ class Node:
     def get_location(self):
         return self._location
 
-    def get_connection_with_parent(self):
-        if self._parent is None:
-            return self._location, self._location
-
-        return self._parent._location, self._location
-
     def get_branches(self):
         res = []
         for branch in self._branches:
