@@ -110,7 +110,9 @@ class Node:
     def get_value(self):
         return self._value
 
-    def get_cut_overhead(self):
+    def get_estimated_value_if_cut(self):
+        if self.is_root():
+            return self.get_value()
         temp = self._parent._value_without_branch[self._parent._branches.index(self)]
         return temp - self._value
 
@@ -143,6 +145,14 @@ class Node:
     def is_expandable(self):
         return self.number_of_childs() < len(self.BRANCH_MATRIX) or self.__achieved_precision_limit
 
+    def _find_matrix_for_(self, point):
+        assert len(point) == len(self.get_location()), 'points must have same lenght'
+        sub = point - self.get_location()
+        norm_sub = sub / np.abs(sub)
+
+        print(sub, norm_sub)
+        print(self.BRANCH_MATRIX)
+
     def _covers_point(self, point):
         check1 = self.point_less_or_equal_than_point(self._low_limit, point)
         check2 = self.point_less_or_equal_than_point(point, self._high_limit)
@@ -173,3 +183,8 @@ class Node:
     def _init_branch_matrix(dims):
         import itertools
         Node.BRANCH_MATRIX = np.array(list(itertools.product([0, 1], repeat=dims))) * 2 - 1
+
+
+n1 = Node(np.array([0.5, 0.5, 0.5]), None)
+print(n1)
+print(n1._find_matrix_for_(np.array([0.2, 0.3, 0.7])))

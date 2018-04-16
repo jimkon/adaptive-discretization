@@ -149,9 +149,9 @@ class Tree:
     def _get_mean_distance(self):
         if self._total_distance_count == 0:
             return 0
-        result = self._total_distance / self._total_distance_count
+        # result = self._total_distance / self._total_distance_count
 
-        return result
+        return np.sum(self.get_values()) / self._total_distance_count
 
     def _get_max_mean_distance(self):
         return 1 / (4 * self.get_current_size())

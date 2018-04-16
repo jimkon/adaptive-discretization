@@ -14,19 +14,58 @@ from node import *
 SAVE_ID = 0
 
 
-def plot(tree, save=False, path='/home/jim/Desktop/dip/Adaptation-of-Action-Space-for-Reinforcement-Learning/results/pics'):
+def plot(tree, save=False, path='/home/jim/Desktop/'):
 
     dims = tree._dimensions
 
     if dims == 1:
         plot_1d_tree(tree)
-    if dims == 2:
+    elif dims == 2:
         plot_2d_tree(tree)
-    if dims == 3:
+    elif dims == 3:
         plot_3d_tree(tree)
+    else:
+        print("plot works for 3 or less dimensional trees")
 
     if save:
         plt.savefig("{}/plot{}.png".format(path, SAVE_ID))
+        SAVE_ID += 1
+    else:
+        plt.show()
+
+
+def plot_point_density(tree, save=False, path='/home/jim/Desktop/'):
+
+    dims = tree._dimensions
+
+    if dims == 1:
+        plot_1dpoint_hist(tree)
+        # plot_1d_point_density(tree)
+    elif dims == 2:
+        plot_2dpoint_hist(tree)
+        # plot_2d_tree(tree)
+    else:
+        print("plot_point_density works for 2 or less dimensional trees")
+
+    if save:
+        plt.savefig("{}/plot_point_density{}.png".format(path, SAVE_ID))
+        SAVE_ID += 1
+    else:
+        plt.show()
+
+
+def plot_values(tree, save=False, path='/home/jim/Desktop/'):
+    dims = tree._dimensions
+
+    if dims == 1:
+        plot_values_1d(tree)
+    elif dims == 2:
+        pass
+    else:
+        print("plot_values works for 2 or less dimensional trees")
+
+    if save:
+        plt.savefig("{}/plot_point_density{}.png".format(path, SAVE_ID))
         SAVE_ID += 1
     else:
         plt.show()
@@ -164,3 +203,113 @@ def plot_3d_tree(tree, node_to_point=(lambda node: node.get_location())):
     ax.set_zlabel('Z')
 
     ax.view_init(40, 10)
+
+
+def plot_1d_point_density(tree):
+    nodes = tree.get_nodes()
+    points = np.sort(list(node.get_location()[0] for node in nodes))
+    density = []
+
+    for i in range(len(points)):
+        prev = points[i - 1] if i > 0 else points[i + 1]
+        curr = points[i]
+        next = points[i + 1] if i < len(points) - 1 else points[i - 1]
+        density.append((abs(curr - prev) + abs(next - curr)) / 2)
+
+    density = apply_func_to_window(1 / np.array(density), int(.1 * len(density)), np.average)
+
+    plt.plot(points, density, label='density (nodes/unit)')
+    plt.grid(True)
+    plt.legend()
+
+
+def plot_1dpoint_hist(tree):
+    nodes = tree.get_nodes()
+    points = list(node.get_location()[0] for node in nodes)
+
+    plt.hist(points, bins=int(.1 * len(points)))
+    plt.grid(True)
+    plt.legend()
+
+
+def plot_2dpoint_hist(tree):
+    nodes = tree.get_nodes()
+    points = list(node.get_location() for node in nodes)
+    xs = list(point[0] for point in points)
+    ys = list(point[1] for point in points)
+
+    plt.hist2d(xs, ys, bins=int(.1 * len(points)))
+    plt.colorbar()
+
+    plt.grid(True)
+    plt.legend()
+
+
+def plot_values_1d(tree):
+    nodes = tree.get_nodes()
+
+    value_lambdas = [lambda node: node.get_location()[0],
+                     lambda node: node.get_value(),
+                     lambda node: node.get_estimated_value_if_cut()]
+
+    infos = list(list(l(node) for l in value_lambdas) for node in nodes)
+
+    infos = sorted(infos, key=lambda _: _[0])
+
+    x = list(item[0] for item in infos)
+    ys = []
+    for i in range(1, len(value_lambdas)):
+        values = list(item[i] for item in infos)
+        plt.plot(x, values, '1-')
+
+    plt.grid(True)
+    plt.legend()
+
+
+def average_timeline(x):
+    res = []
+    count = 0
+    total = 0
+    for i in x:
+        total += i
+        count += 1
+        res.append(total / count)
+    return res
+
+
+def apply_func_to_window(data, window_size, func):
+    data_lenght = len(data)
+    window_size = min(window_size, data_lenght)
+    if window_size == 0:
+        window_size = (data_lenght * .1)
+    res = []
+    for i in range(data_lenght):
+        start = int(max(i - window_size / 2, 0))
+        end = int(min(i + window_size / 2, data_lenght - 1))
+        if start == end:
+            continue
+        res.append(func(data[start:end]))
+
+    return res
+
+
+tree = Tree(1, 32)
+
+batches = 10
+batch_size = 10000
+x = np.linspace(0, 1, 101)
+
+for i in range(batches):
+    # samples = np.random.choice(x, size=batch_size)
+    samples = np.linspace(0, 1, 10000)
+    for sample in samples:
+        tree.search_nearest_node([sample])
+
+    plot_values(tree)
+    plot(tree)
+    exit()
+
+    if i != batches - 1:
+        tree.update()
+
+plot(tree)
