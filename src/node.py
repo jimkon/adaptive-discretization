@@ -9,18 +9,18 @@ class Node:
 
     def __init__(self, location, parent):
         self._value = 0
-        self._location = location
+        self._location = np.array(location)
 
         if parent is None:
             self._radius = .5
         else:
             self._radius = parent._radius / 2
 
-        self._low_limit = location - self._radius
-        self._high_limit = location + self._radius
+        self._low_limit = self._location - self._radius
+        self._high_limit = self._location + self._radius
 
         if self.BRANCH_MATRIX is None:
-            self._init_branch_matrix(len(location))
+            self._init_branch_matrix(len(self._location))
 
         self._branches = [None] * len(self.BRANCH_MATRIX)
         self._parent = parent
@@ -61,6 +61,18 @@ class Node:
                 continue
             self._branches[i] = new_node
             new_nodes.append(new_node)
+
+        return new_nodes
+
+    def expand_rec(self, towards_point=None):
+        if towards_point is None:
+            towards_point = self.get_location()
+
+        new_nodes = self.expand(towards_point)
+
+        if len(new_nodes) == 0:
+            leaf, _ = self.search(towards_point)
+            new_nodes = leaf.expand(towards_point)
 
         return new_nodes
 
@@ -145,13 +157,35 @@ class Node:
     def is_expandable(self):
         return self.number_of_childs() < len(self.BRANCH_MATRIX) or self.__achieved_precision_limit
 
-    def _find_matrix_for_(self, point):
+    def _direction_matrix_for_(self, point):
         assert len(point) == len(self.get_location()), 'points must have same lenght'
-        sub = point - self.get_location()
-        norm_sub = sub / np.abs(sub)
+        p0 = self.get_location()
+        sub = point - p0
+        # if any sub[i] == 0
+        for i in range(len(sub)):
+            if sub[i] == 0:
+                p_mask = np.zeros(len(sub))
+                p_mask[i] = 1
+                res = self._direction_matrix_for_(point + p_mask)
+                res.extend(self._direction_matrix_for_(point - p_mask))
+                return res
 
-        print(sub, norm_sub)
-        print(self.BRANCH_MATRIX)
+        norm_sub = [sub / np.abs(sub)]
+        return norm_sub
+
+    def _indexes_of_relevant_branches(self, p):
+        dirs = self._direction_matrix_for_(p)
+
+        indexes = []
+
+        for dir in dirs:
+            to_bin = (dir + 1) / 2
+            to_index = list(to_bin[i] * (2**(len(dir) - i - 1))
+                            for i in range(len(dir)))
+            index = int(np.sum(to_index))
+            indexes.append(index)
+
+        return indexes
 
     def _covers_point(self, point):
         check1 = self.point_less_or_equal_than_point(self._low_limit, point)
@@ -183,8 +217,3 @@ class Node:
     def _init_branch_matrix(dims):
         import itertools
         Node.BRANCH_MATRIX = np.array(list(itertools.product([0, 1], repeat=dims))) * 2 - 1
-
-
-n1 = Node(np.array([0.5, 0.5, 0.5]), None)
-print(n1)
-print(n1._find_matrix_for_(np.array([0.2, 0.3, 0.7])))

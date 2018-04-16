@@ -189,6 +189,10 @@ class Tree:
         for node in nodes:
             print(node)
 
+    def plot(self):
+        import tree_vis
+        tree_vis.plot(self)
+
     @staticmethod
     def correct_point(point):
         new_point = []

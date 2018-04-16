@@ -293,7 +293,11 @@ def apply_func_to_window(data, window_size, func):
     return res
 
 
-tree = Tree(1, 32)
+tree = Tree(1, 3)
+tree._nodes.extend(tree._root.expand_rec())
+tree.plot()
+
+exit()
 
 batches = 10
 batch_size = 10000
