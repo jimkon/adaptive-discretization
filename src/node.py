@@ -123,10 +123,12 @@ class Node:
         return self._value
 
     def get_estimated_value_if_cut(self):
-        if self.is_root():
-            return self.get_value()
+        if self.is_root() or not self.is_expandable():
+            return 0
+
         temp = self._parent._value_without_branch[self._parent._branches.index(self)]
-        return temp - self._value
+
+        return temp - self.get_value()
 
     def reset_value(self):
         self._value = 0

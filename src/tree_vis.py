@@ -293,11 +293,12 @@ def apply_func_to_window(data, window_size, func):
     return res
 
 
-tree = Tree(1, 3)
-tree._nodes.extend(tree._root.expand_rec())
-tree.plot()
+tree = Tree(1, 1)
+# tree._nodes.extend(tree._root.expand_rec([0]))
+tree._nodes.extend(tree._root.expand_rec([1]))
+# tree._nodes.extend(tree._root._branches[0].expand_rec([0.1]))
+# tree.plot()
 
-exit()
 
 batches = 10
 batch_size = 10000
@@ -309,6 +310,7 @@ for i in range(batches):
     for sample in samples:
         tree.search_nearest_node([sample])
 
+    print(tree._get_mean_distance())
     plot_values(tree)
     plot(tree)
     exit()
