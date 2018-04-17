@@ -250,7 +250,7 @@ def plot_values_1d(tree):
 
     value_lambdas = [lambda node: node.get_location()[0],
                      lambda node: node.get_value(),
-                     lambda node: node.get_estimated_value_if_cut()]
+                     lambda node: node.get_value_increase_if_cut()]
 
     infos = list(list(l(node) for l in value_lambdas) for node in nodes)
 
@@ -293,8 +293,8 @@ def apply_func_to_window(data, window_size, func):
     return res
 
 
-tree = Tree(1, 1)
-# tree._nodes.extend(tree._root.expand_rec([0]))
+tree = Tree(1, 31)
+tree._nodes.extend(tree._root.expand_rec([0]))
 tree._nodes.extend(tree._root.expand_rec([1]))
 # tree._nodes.extend(tree._root._branches[0].expand_rec([0.1]))
 # tree.plot()
@@ -306,7 +306,7 @@ x = np.linspace(0, 1, 101)
 
 for i in range(batches):
     # samples = np.random.choice(x, size=batch_size)
-    samples = np.linspace(0, 1, 10000)
+    samples = np.linspace(0.2, 1, 10000)
     for sample in samples:
         tree.search_nearest_node([sample])
 

@@ -124,7 +124,7 @@ class Node:
     def get_value(self):
         return self._value
 
-    def get_estimated_value_if_cut(self):
+    def get_value_increase_if_cut(self):
         if self.is_root() or not self.is_expandable():
             return 0
 
