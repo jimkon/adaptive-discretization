@@ -85,9 +85,11 @@ class Node:
         if min_dist_till_now > dist_to_self:
             min_dist_till_now = dist_to_self
 
-        branches = self.get_branches()
+        branches = self._branches
         for branch_i in range(len(branches)):
             branch = branches[branch_i]
+            if branch is None:
+                continue
             res, branch_dist = branch.search(point, min_dist_till_now)
             if res is not None:
                 # print('dist to child', branch, '=', branch_dist)
