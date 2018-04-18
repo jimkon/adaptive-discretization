@@ -75,7 +75,7 @@ class Node:
 
         return new_nodes
 
-    def search(self, point, min_dist_till_now=1):
+    def search(self, point, min_dist_till_now=1, all=False):
         if not self._covers_point(point):
             return None, 0
 
@@ -83,6 +83,9 @@ class Node:
 
         if min_dist_till_now > dist_to_self:
             min_dist_till_now = dist_to_self
+
+        if all:
+            res_branches = []
 
         branches = self._branches
         for branch_i in range(len(branches)):
@@ -95,10 +98,22 @@ class Node:
 
                 if branch_dist > dist_to_self:
                     self._value += dist_to_self
-                    return res, dist_to_self
+                    if all:
+                        res_branches.append(res)
+                    else:
+                        return res, dist_to_self
                 else:
-                    self._value_without_branch[branch_i] += dist_to_self
-                    return res, branch_dist
+                    if all:
+                        res_branches.append(res)
+                    else:
+                        self._value_without_branch[branch_i] += dist_to_self
+                        return res, branch_dist
+
+        if all:
+            if len(res_branches) == 0:
+                return [self]
+            else:
+                return res_branches
 
         # print(self, point, dist_to_self if min_dist_till_now == dist_to_self else 0)
         self._value += dist_to_self if min_dist_till_now == dist_to_self else 0
@@ -133,9 +148,10 @@ class Node:
 
     def suggest_for_expand(self):
         if self.is_expandable():
-            return self
+            return [self]
         else:
-            return self.search(self.get_location())[0]
+            res = self.search(self.get_location(), all=True)
+            return res
 
     def reset_value(self):
         self._value = 0

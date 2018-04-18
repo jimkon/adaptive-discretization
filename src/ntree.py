@@ -59,7 +59,8 @@ class Tree:
         pruned = self.prune_useless_nodes()
         print('pruned', pruned)
 
-        self.expand_usefull_nodes(pruned)
+        excess = self.get_current_size() - self.get_size()
+        self.expand_usefull_nodes(pruned - excess)
 
         self._refresh_nodes()
         self._reset_values()
@@ -81,18 +82,22 @@ class Tree:
         return count_cuts
 
     def expand_usefull_nodes(self, n):
-
+        print('able to expand', n)
         nodes = sorted(self.get_nodes(), key=lambda node: node.get_value())
+        suggestions = list(node.suggest_for_expand() for node in nodes)
 
         count_expantions = 0
         i = len(nodes) - 1
         while count_expantions < n and i >= 0:
-            to_expand = nodes[i].suggest_for_expand()
-            print(nodes[i], 'suggests', to_expand)
-            new_nodes = to_expand.expand(nodes[i].get_location())
+            to_expand = suggestions[i]
+            # print(to_expand)
+            new_nodes = list(suggestion.expand(nodes[i].get_location())
+                             for suggestion in to_expand)
+            # print(nodes[i], 'suggests', to_expand, 'and expanded to ', new_nodes)
             self._nodes.extend(new_nodes)
             count_expantions += len(new_nodes)
             i -= 1
+        print(count_expantions, 'expansions')
 
     def get_node(self, index):
         node = self.get_nodes()[index]
