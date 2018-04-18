@@ -8,7 +8,6 @@ class Node:
     BRANCH_MATRIX = None
 
     def __init__(self, location, parent):
-        self._value = 0
         self._location = np.array(location)
 
         if parent is None:
@@ -131,6 +130,12 @@ class Node:
         temp = self._parent._value_without_branch[self._parent._branches.index(self)]
 
         return temp - self.get_value()
+
+    def suggest_for_expand(self):
+        if self.is_expandable():
+            return self
+        else:
+            return self.search(self.get_location())[0]
 
     def reset_value(self):
         self._value = 0
