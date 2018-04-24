@@ -29,7 +29,7 @@ class Tree:
         Node._init_branch_matrix(self._dimensions)
 
         self._branch_factor = self._dimensions * 2
-        root = Node(np.ones(dims) * 0.5, None)
+        root = Node(None, None, dims)
         self._nodes = [root]
         self._root = root
 
@@ -56,8 +56,14 @@ class Tree:
 
     def update(self, reward_factor=1):
 
-        pruned = self.prune_useless_nodes()
-        # print('pruned', pruned)
+        to_prune = self.prune_prospectives()
+        pruned = 0
+        for node in to_prune:
+            # print(node)
+            node.delete()
+            pruned += 1
+        print('pruned', pruned)
+        # self.plot()
 
         excess = self.get_current_size() - self.get_size()
         self.expand_usefull_nodes(pruned - excess)
@@ -65,39 +71,46 @@ class Tree:
         self._refresh_nodes()
         self._reset_values()
 
-    def prune_useless_nodes(self):
+    def prune_prospectives(self):
 
         nodes = self.get_prunable_nodes()
 
         mean_value = self.get_mean_value()
 
-        count_cuts = 0
+        result = []
 
         for node in nodes:
             estimated_future_value = node.get_value() + node.get_value_increase_if_cut()
             if(estimated_future_value < mean_value):
-                node.delete()
-                count_cuts += 1
+                result.append(node)
 
-        return count_cuts
+        return result
 
     def expand_usefull_nodes(self, n):
-        # print('able to expand', n)
-        nodes = sorted(self.get_nodes(), key=lambda node: node.get_value())
+        print('able to expand', n)
+        nodes = sorted(self.get_nodes(recalculate=True), key=lambda node: node.get_value())
         suggestions = list(node.suggest_for_expand() for node in nodes)
 
         count_expantions = 0
-        i = len(nodes) - 1
+        i = len(nodes)
         while count_expantions < n and i >= 0:
+            i -= 1
+            if(nodes[i].get_value() == 0):
+                continue
+
             to_expand = suggestions[i]
             # print(to_expand)
-            new_nodes = list(suggestion.expand(nodes[i].get_location())
-                             for suggestion in to_expand)
+            new_nodes = []
+            for suggestion in to_expand:
+                new_nodes.extend(suggestion.expand(nodes[i].get_location()))
+
             # print(nodes[i], 'suggests', to_expand, 'and expanded to ', new_nodes)
+            # print(nodes[i], len(new_nodes), new_nodes)
             self._nodes.extend(new_nodes)
+            # print(len(new_nodes), new_nodes)
             count_expantions += len(new_nodes)
-            i -= 1
-        # print(count_expantions, 'expansions')
+
+        print(count_expantions, 'expansions, i=', i)
 
     def get_node(self, index):
         node = self.get_nodes()[index]
@@ -147,7 +160,9 @@ class Tree:
                 new_nodes = node.expand()
                 self._nodes.extend(new_nodes)
 
-    def get_nodes(self):
+    def get_nodes(self, recalculate=False):
+        if recalculate:
+            self._nodes = self.recursive_traversal()
         return self._nodes
 
     def _refresh_nodes(self):
