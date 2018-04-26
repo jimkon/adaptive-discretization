@@ -62,14 +62,16 @@ class Tree:
             # print(node)
             node.delete()
             pruned += 1
-        print('pruned', pruned)
+        # print('pruned', pruned)
         # self.plot()
 
         excess = self.get_current_size() - self.get_size()
-        self.expand_usefull_nodes(pruned - excess)
+        expanded = self.expand_usefull_nodes(pruned - excess)
 
         self._refresh_nodes()
         self._reset_values()
+
+        return pruned == 0 and expanded == 0
 
     def prune_prospectives(self):
 
@@ -87,7 +89,7 @@ class Tree:
         return result
 
     def expand_usefull_nodes(self, n):
-        print('able to expand', n)
+        # print('able to expand', n)
         nodes = sorted(self.get_nodes(recalculate=True), key=lambda node: node.get_value())
         suggestions = list(node.suggest_for_expand() for node in nodes)
 
@@ -110,7 +112,8 @@ class Tree:
             # print(len(new_nodes), new_nodes)
             count_expantions += len(new_nodes)
 
-        print(count_expantions, 'expansions, i=', i)
+        # print(count_expantions, 'expansions, i=', i)
+        return count_expantions
 
     def get_node(self, index):
         node = self.get_nodes()[index]

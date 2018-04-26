@@ -41,7 +41,9 @@ def apply_func_to_window(data, window_size, func):
     return res
 
 
-def break_into_batches(array, number_of_batches=1, size_of_batches=1):
+def break_into_batches(array, number_of_batches=-1, size_of_batches=1):
+    if number_of_batches < 0:
+        number_of_batches = len(array)
     number_of_batches = max(1, min(number_of_batches, len(array)))
     size_of_batches = max(1, min(size_of_batches, len(array)))
 
@@ -109,6 +111,7 @@ def plot_values(tree, save=False, path='/home/jim/Desktop/'):
     if dims == 1:
         plot_values_1d(tree)
     elif dims == 2:
+        plot_values_2d(tree)
         pass
     else:
         print("plot_values works for 2 or less dimensional trees")
@@ -258,11 +261,25 @@ def plot_1d_point_density(tree):
     nodes = tree.get_nodes()
     points = np.sort(list(node.get_location()[0] for node in nodes))
 
-    dists = list(np.average(list(batch[i + 1] - batch[i] for i in range(len(batch) - 1)))
-                 for batch in break_into_batches(points, number_of_batches=len(points), size_of_batches=int(len(points) * 0.1)))
-    density = list(1 / dist for dist in dists)
+    # dists = list(np.average(list(batch[i + 1] - batch[i] for i in range(len(batch) - 1)))
+    #               for batch in break_into_batches(points, number_of_batches=len(points), size_of_batches=int(len(points) * 0.1)))
+    # density = list(1 / dist for dist in dists)
+    # plt.plot(points, density, label='density (nodes/unit)')
+    value_lambdas = [lambda node: node.get_location()[0],
+                     lambda node: node.get_level()]
+    #, lambda node: node.get_value_increase_if_cut()]
 
-    plt.plot(points, density, label='density (nodes/unit)')
+    infos = list(list(l(node) for l in value_lambdas) for node in nodes)
+
+    infos = sorted(infos, key=lambda _: _[0])
+    levels = list(item[1] for item in infos)
+    levels = list(np.max(batch) for batch in break_into_batches(levels, -1, int(len(levels) / 10)))
+    plt.plot(points, levels, label='levels')
+
+    plt.hist(points, bins='auto', histtype='step', label='hist')
+    for point in points:
+        plt.plot([point, point], [0, 1], 'm', linewidth=.5, label='points')
+
     plt.grid(True)
     plt.legend()
 
@@ -282,7 +299,7 @@ def plot_2dpoint_hist(tree):
     xs = list(point[0] for point in points)
     ys = list(point[1] for point in points)
 
-    plt.hist2d(xs, ys, bins=int(.1 * len(points)))
+    plt.hist2d(xs, ys)
     plt.colorbar()
 
     plt.grid(True)
@@ -310,6 +327,29 @@ def plot_values_1d(tree):
 
     plt.grid(True)
     plt.legend()
+
+
+def plot_values_2d(tree):
+    from operator import itemgetter
+
+    nodes = tree.get_nodes()
+    points = list((node.get_location()[0],
+                   node.get_location()[1],
+                   node.get_value()) for node in nodes)
+    # points = sorted(points, key=itemgetter(1, 2))
+    #
+    X = list(item[0] for item in points)
+    Y = list(item[1] for item in points)
+    Z = list(item[2] for item in points)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Grab some test data.
+
+    # Plot a basic wireframe.
+    ax.scatter(X, Y, Z)
+    plt.show()
 
 
 def plot_nodes_1d(nodes,
