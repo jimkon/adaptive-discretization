@@ -55,6 +55,7 @@ class Tree:
         return node
 
     def update(self, reward_factor=1):
+        _points_before = np.array(self.get_points())
 
         to_prune = self.prune_prospectives()
         pruned = 0
@@ -71,7 +72,21 @@ class Tree:
         self._refresh_nodes()
         self._reset_values()
 
-        return pruned == 0 and expanded == 0
+        _points_after = np.array(self.get_points())
+
+        if pruned == expanded:
+
+            for i in range(len(_points_after)):
+                if np.linalg.norm(_points_before[i] - _points_after[i]) > 0:
+                    return False
+            return True
+        else:
+            return False
+
+    def feed_and_adapt(self, samples):
+        for sample in samples:
+            self.search_nearest_node(sample)
+        return self.update()
 
     def prune_prospectives(self):
 
