@@ -83,10 +83,9 @@ class Tree:
         else:
             return False
 
-    def feed_and_adapt(self, samples):
+    def feed(self, samples):
         for sample in samples:
             self.search_nearest_node(sample)
-        return self.update()
 
     def prune_prospectives(self):
 
