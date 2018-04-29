@@ -75,13 +75,12 @@ class Tree:
         _points_after = np.array(self.get_points())
 
         if pruned == expanded:
-
             for i in range(len(_points_after)):
                 if np.linalg.norm(_points_before[i] - _points_after[i]) > 0:
-                    return False
-            return True
-        else:
+                    return True
             return False
+        else:
+            return True
 
     def feed(self, samples):
         for sample in samples:
