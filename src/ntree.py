@@ -29,7 +29,7 @@ class Tree:
         Node._init_branch_matrix(self._dimensions)
 
         self._branch_factor = self._dimensions * 2
-        root = Node(np.ones(dims) * 0.5, None)
+        root = Node(None, None, dims)
         self._nodes = [root]
         self._root = root
 
@@ -55,73 +55,78 @@ class Tree:
         return node
 
     def update(self, reward_factor=1):
-        # find the expand value
-        selected_exp_value = self._expand_threshold_value(reward_factor)
-        size_before = self.get_current_size()
+        _points_before = np.array(self.get_points())
 
-        # expand nodes with values greater or equal to the choosen one
-        self.expand_nodes(selected_exp_value)
-        size_after = self.get_current_size()
-
-        # find the cut value
-        selected_cut_value = self._prune_threshold_value(max_threshold=selected_exp_value)
-        assert selected_cut_value < selected_exp_value, 'cut value > expand value'
-
-        prunable = self.get_prunable_nodes()
-        # cut the nodes with values below (not equal) to the choosen one
-        for node in prunable:
-            if node.get_value() <= selected_cut_value:
-                node.delete()
-
+        to_prune = self.prune_prospectives()
+        pruned = 0
+        for node in to_prune:
+            # print(node)
+            node.delete()
+            pruned += 1
+        # print('pruned', pruned)
         # self.plot()
+
+        excess = self.get_current_size() - self.get_size()
+        expanded = self.expand_usefull_nodes(pruned - excess)
 
         self._refresh_nodes()
         self._reset_values()
 
-    def _prune_threshold_value(self, max_threshold=np.inf):
+        _points_after = np.array(self.get_points())
 
-        excess = self.get_current_size() - self.get_size()
-        if excess <= 0:
-            return -1
+        if pruned == expanded:
+            for i in range(len(_points_after)):
+                if np.linalg.norm(_points_before[i] - _points_after[i]) > 0:
+                    return True
+            return False
+        else:
+            return True
 
-        values = list(node.get_value() for node in self.get_prunable_nodes())
+    def feed(self, samples):
+        for sample in samples:
+            self.search_nearest_node(sample)
 
-        unique, counts = np.unique(values, return_counts=True)
+    def prune_prospectives(self):
 
-        valid_values_indexex = np.where(unique < max_threshold)[0]
+        nodes = self.get_prunable_nodes()
 
-        unique = unique[valid_values_indexex]
-        counts = counts[valid_values_indexex]
+        mean_value = self.get_mean_value()
 
-        unique = np.insert(unique, 0, -1)
-        counts = np.insert(counts, 0, 0)
+        result = []
 
-        for i in range(1, len(counts)):
-            counts[i] += counts[i - 1]
+        for node in nodes:
+            estimated_future_value = node.get_value() + node.get_value_increase_if_cut()
+            if(estimated_future_value < mean_value):
+                result.append(node)
 
-        delta_size = np.abs(counts - excess)
+        return result
 
-        result_value = unique[np.argmin(delta_size)]
+    def expand_usefull_nodes(self, n):
+        # print('able to expand', n)
+        nodes = sorted(self.get_nodes(recalculate=True), key=lambda node: node.get_value())
+        suggestions = list(node.suggest_for_expand() for node in nodes)
 
-        return result_value
+        count_expantions = 0
+        i = len(nodes)
+        while count_expantions < n and i >= 0:
+            i -= 1
+            if(nodes[i].get_value() == 0):
+                continue
 
-    def _expand_threshold_value(self, factor=1):
+            to_expand = suggestions[i]
+            # print(to_expand)
+            new_nodes = []
+            for suggestion in to_expand:
+                new_nodes.extend(suggestion.expand(nodes[i].get_location()))
 
-        factor = max(factor, .01)
+            # print(nodes[i], 'suggests', to_expand, 'and expanded to ', new_nodes)
+            # print(nodes[i], len(new_nodes), new_nodes)
+            self._nodes.extend(new_nodes)
+            # print(len(new_nodes), new_nodes)
+            count_expantions += len(new_nodes)
 
-        v_exp = list(node.get_value() for node in self.get_expendable_nodes())
-
-        avg_v = np.average(v_exp)
-
-        result_value = avg_v / factor
-
-        return result_value
-
-    def _evaluate(self):
-        mean_distance = self._get_mean_distance()
-        max_mean_distance = self._get_max_mean_distance()
-        distance_factor = mean_distance / max_mean_distance
-        return distance_factor
+        # print(count_expantions, 'expansions, i=', i)
+        return count_expantions
 
     def get_node(self, index):
         node = self.get_nodes()[index]
@@ -146,12 +151,15 @@ class Tree:
     def get_expendable_nodes(self):
         return self.recursive_traversal(collect_cond_func=(lambda node: node.is_expandable()))
 
-    def _get_mean_distance(self):
+    def get_mean_error(self):
         if self._total_distance_count == 0:
             return 0
         # result = self._total_distance / self._total_distance_count
 
         return np.sum(self.get_values()) / self._total_distance_count
+
+    def get_mean_value(self):
+        return np.sum(self.get_values()) / self.get_current_size()
 
     def _get_max_mean_distance(self):
         return 1 / (4 * self.get_current_size())
@@ -168,7 +176,9 @@ class Tree:
                 new_nodes = node.expand()
                 self._nodes.extend(new_nodes)
 
-    def get_nodes(self):
+    def get_nodes(self, recalculate=False):
+        if recalculate:
+            self._nodes = self.recursive_traversal()
         return self._nodes
 
     def _refresh_nodes(self):

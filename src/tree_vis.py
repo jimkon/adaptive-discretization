@@ -14,6 +14,57 @@ from node import *
 SAVE_ID = 0
 
 
+def average_timeline(x):
+    res = []
+    count = 0
+    total = 0
+    for i in x:
+        total += i
+        count += 1
+        res.append(total / count)
+    return res
+
+
+def apply_func_to_window(data, window_size, func):
+    data_lenght = len(data)
+    window_size = min(window_size, data_lenght)
+    if window_size == 0:
+        window_size = (data_lenght * .1)
+    res = []
+    for i in range(data_lenght):
+        start = int(max(i - window_size / 2, 0))
+        end = int(min(i + window_size / 2, data_lenght - 1))
+        if start == end:
+            continue
+        res.append(func(data[start:end]))
+
+    return res
+
+
+def break_into_batches(array, number_of_batches=-1, size_of_batches=1):
+    if number_of_batches < 0:
+        number_of_batches = len(array)
+    number_of_batches = max(1, min(number_of_batches, len(array)))
+    size_of_batches = max(1, min(size_of_batches, len(array)))
+
+    array = np.array(array)
+
+    ranges = np.linspace(0, len(array), number_of_batches + 1)
+    indexes = list((ranges[i] + ranges[i - 1]) / 2 for i in range(1, len(ranges)))
+
+    res = []
+
+    for index in indexes:
+        start = index - size_of_batches / 2
+        end = start + size_of_batches
+        # int
+        start = max(0, int(round(start)))
+        end = min(len(array), int(round(end)))
+
+        res.append(array[range(start, end)])
+    return res
+
+
 def plot(tree, save=False, path='/home/jim/Desktop/'):
 
     dims = tree._dimensions
@@ -39,8 +90,8 @@ def plot_point_density(tree, save=False, path='/home/jim/Desktop/'):
     dims = tree._dimensions
 
     if dims == 1:
-        plot_1dpoint_hist(tree)
-        # plot_1d_point_density(tree)
+        # plot_1dpoint_hist(tree)
+        plot_1d_point_density(tree)
     elif dims == 2:
         plot_2dpoint_hist(tree)
         # plot_2d_tree(tree)
@@ -60,6 +111,7 @@ def plot_values(tree, save=False, path='/home/jim/Desktop/'):
     if dims == 1:
         plot_values_1d(tree)
     elif dims == 2:
+        plot_values_2d(tree)
         pass
     else:
         print("plot_values works for 2 or less dimensional trees")
@@ -75,7 +127,7 @@ def plot_1d_tree(tree, node_to_point=(lambda node: node.get_location())):
     plt.figure()
     plt.title('tree size = {}'.format(tree.get_current_size()))
 
-    nodes = tree.get_nodes()
+    nodes = tree.get_nodes(recalculate=True)
 
     max_level = np.max(list(node.get_level() for node in nodes))
 
@@ -208,17 +260,26 @@ def plot_3d_tree(tree, node_to_point=(lambda node: node.get_location())):
 def plot_1d_point_density(tree):
     nodes = tree.get_nodes()
     points = np.sort(list(node.get_location()[0] for node in nodes))
-    density = []
 
-    for i in range(len(points)):
-        prev = points[i - 1] if i > 0 else points[i + 1]
-        curr = points[i]
-        next = points[i + 1] if i < len(points) - 1 else points[i - 1]
-        density.append((abs(curr - prev) + abs(next - curr)) / 2)
+    # dists = list(np.average(list(batch[i + 1] - batch[i] for i in range(len(batch) - 1)))
+    #               for batch in break_into_batches(points, number_of_batches=len(points), size_of_batches=int(len(points) * 0.1)))
+    # density = list(1 / dist for dist in dists)
+    # plt.plot(points, density, label='density (nodes/unit)')
+    value_lambdas = [lambda node: node.get_location()[0],
+                     lambda node: node.get_level()]
+    #, lambda node: node.get_value_increase_if_cut()]
 
-    density = apply_func_to_window(1 / np.array(density), int(.1 * len(density)), np.average)
+    infos = list(list(l(node) for l in value_lambdas) for node in nodes)
 
-    plt.plot(points, density, label='density (nodes/unit)')
+    infos = sorted(infos, key=lambda _: _[0])
+    levels = list(item[1] for item in infos)
+    levels = list(np.max(batch) for batch in break_into_batches(levels, -1, int(len(levels) / 10)))
+    plt.plot(points, levels, label='levels')
+
+    plt.hist(points, bins='auto', histtype='step', label='hist')
+    for point in points:
+        plt.plot([point, point], [0, 1], 'm', linewidth=.5, label='points')
+
     plt.grid(True)
     plt.legend()
 
@@ -238,7 +299,7 @@ def plot_2dpoint_hist(tree):
     xs = list(point[0] for point in points)
     ys = list(point[1] for point in points)
 
-    plt.hist2d(xs, ys, bins=int(.1 * len(points)))
+    plt.hist2d(xs, ys)
     plt.colorbar()
 
     plt.grid(True)
@@ -249,8 +310,8 @@ def plot_values_1d(tree):
     nodes = tree.get_nodes()
 
     value_lambdas = [lambda node: node.get_location()[0],
-                     lambda node: node.get_value(),
-                     lambda node: node.get_value_increase_if_cut()]
+                     lambda node: node.get_value()]
+    #, lambda node: node.get_value_increase_if_cut()]
 
     infos = list(list(l(node) for l in value_lambdas) for node in nodes)
 
@@ -262,60 +323,82 @@ def plot_values_1d(tree):
         values = list(item[i] for item in infos)
         plt.plot(x, values, '1-')
 
+    plt.plot([0, 1], [tree.get_mean_value()] * 2)
+
     plt.grid(True)
     plt.legend()
 
 
-def average_timeline(x):
-    res = []
-    count = 0
-    total = 0
-    for i in x:
-        total += i
-        count += 1
-        res.append(total / count)
-    return res
+def plot_values_2d(tree):
+    from operator import itemgetter
+
+    nodes = tree.get_nodes()
+    points = list((node.get_location()[0],
+                   node.get_location()[1],
+                   node.get_value()) for node in nodes)
+    # points = sorted(points, key=itemgetter(1, 2))
+    #
+    X = list(item[0] for item in points)
+    Y = list(item[1] for item in points)
+    Z = list(item[2] for item in points)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Grab some test data.
+
+    # Plot a basic wireframe.
+    ax.scatter(X, Y, Z)
+    plt.show()
 
 
-def apply_func_to_window(data, window_size, func):
-    data_lenght = len(data)
-    window_size = min(window_size, data_lenght)
-    if window_size == 0:
-        window_size = (data_lenght * .1)
-    res = []
-    for i in range(data_lenght):
-        start = int(max(i - window_size / 2, 0))
-        end = int(min(i + window_size / 2, data_lenght - 1))
-        if start == end:
-            continue
-        res.append(func(data[start:end]))
+def plot_nodes_1d(nodes,
+                  node_x=(lambda node: node.get_location()[0]),
+                  node_y=(lambda node: node.get_value()),
+                  marker='.', label=None):
 
-    return res
+    x = []
+    y = []
+    for node in nodes:
+        x.append(node_x(node))
+        y.append(node_y(node))
 
-
-tree = Tree(1, 31)
-tree._nodes.extend(tree._root.expand_rec([0]))
-tree._nodes.extend(tree._root.expand_rec([1]))
-# tree._nodes.extend(tree._root._branches[0].expand_rec([0.1]))
-# tree.plot()
+    for i in range(len(x)):
+        plt.plot(x[i], y[i], marker, label=label)
 
 
-batches = 10
-batch_size = 10000
-x = np.linspace(0, 1, 101)
+def pre_update_plot(tree):
 
-for i in range(batches):
-    # samples = np.random.choice(x, size=batch_size)
-    samples = np.linspace(0.2, 1, 10000)
-    for sample in samples:
-        tree.search_nearest_node([sample])
+    max_level = np.max(list(node.get_level() for node in tree.get_nodes()))
 
-    print(tree._get_mean_distance())
-    plot_values(tree)
-    plot(tree)
-    exit()
+    plot_nodes_1d(tree.get_nodes(),
+                  marker='b.', label='values')
+    plot_nodes_1d(tree.get_expendable_nodes(),
+                  marker='c1', label='expanable')
 
-    if i != batches - 1:
-        tree.update()
+    to_prune = tree.prune_prospectives()
+    plot_nodes_1d(to_prune,
+                  node_x=(lambda node: [node.get_location()[0]] * 2),
+                  node_y=(lambda node: [node.get_value(), node.get_value() +
+                                        node.get_value_increase_if_cut()]),
+                  marker='r2--', label='to prune ({})'.format(len(to_prune)))
+    plot_nodes_1d(tree.get_nodes(),
+                  node_y=(lambda node: node.get_level() / max_level - 1.2),
+                  marker='g.', label='tree (size {})'.format(tree.get_current_size()))
+    # plot_nodes_1d(tree.get_expendable_nodes(),
+    #               node_y=lambda node: node.get_value_increase_if_cut(),
+    #               marker='r3', label='value incr if cut')
 
-plot(tree)
+    # plot_nodes_1d(tree.get_nodes(),
+    #               node_x=lambda node: [
+    #                   node.get_location()[0], node.suggest_for_expand()[0].get_location()[0]],
+    #               node_y=lambda node: [
+    #                   node.get_level() / max_level - 1.2, node.suggest_for_expand()[0].get_level() / max_level - 1.2],
+    #               marker='m--')
+
+    plt.plot([0, 1], [tree.get_mean_value()] * 2)
+
+    plt.grid(True)
+    plt.legend()
+
+    plt.show()

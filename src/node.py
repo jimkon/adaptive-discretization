@@ -7,14 +7,19 @@ class Node:
 
     BRANCH_MATRIX = None
 
-    def __init__(self, location, parent):
-        self._value = 0
-        self._location = np.array(location)
+    def __init__(self, parent, direction, dims=-1):
+        self._parent = parent
 
         if parent is None:
             self._radius = .5
+            self._location = np.ones(dims) * 0.5
+            self._level = 0
+            self._value = 0
         else:
             self._radius = parent._radius / 2
+            self._location = parent.get_location() + direction * self._radius
+            self._level = parent._level + 1
+            self._value = parent._value
 
         self._low_limit = self._location - self._radius
         self._high_limit = self._location + self._radius
@@ -23,60 +28,36 @@ class Node:
             self._init_branch_matrix(len(self._location))
 
         self._branches = [None] * len(self.BRANCH_MATRIX)
-        self._parent = parent
-
-        self.reset_value()
+        self._value_without_branch = np.zeros(len(self.BRANCH_MATRIX))
 
         self.__achieved_precision_limit = False
 
-        if parent is not None:
-            self._level = parent._level + 1
-            self._value = parent._value
-        else:
-            self._level = 0
-
         if np.array_equal(self._low_limit, self._high_limit):
-            # print('expansion of', self, 'stopped')
-            raise ArithmeticError('Node: Low == High :{}=={}'.format(
-                self._low_limit, self._high_limit))
+            self.__achieved_precision_limit = True
+            # raise ArithmeticError('Node: Low == High :{}=={}'.format(
+            #     self._low_limit, self._high_limit))
 
     def expand(self, towards_point=None):
-        if not self.is_expandable():
-            return []
-        new_radius = self._radius / 2
+        if towards_point is None:
+            towards_point = self.get_location()
+
         new_nodes = []
-        for i in range(len(self.BRANCH_MATRIX)):
+        for i in self._indexes_of_relevant_branches(towards_point):
             if self._branches[i] is not None:
                 continue
-
-            new_location = self._location + self.BRANCH_MATRIX[i] * new_radius
-
-            try:
-                new_node = Node(new_location, self)
-            except Exception as e:
-                self.__achieved_precision_limit = True
-                return new_nodes
-
-            if (towards_point is not None) and (not new_node._covers_point(towards_point)):
-                continue
+            new_node = Node(self, self.BRANCH_MATRIX[i])
             self._branches[i] = new_node
             new_nodes.append(new_node)
 
         return new_nodes
 
-    def expand_rec(self, towards_point=None):
-        if towards_point is None:
-            towards_point = self.get_location()
-
-        new_nodes = self.expand(towards_point)
-
-        if len(new_nodes) == 0:
-            leaf, _ = self.search(towards_point)
-            new_nodes = leaf.expand(towards_point)
-
+    def expand_suggestions(self):
+        new_nodes = []
+        for to_expand in self.suggest_for_expand():
+            new_nodes.extend(to_expand.expand(self.get_location()))
         return new_nodes
 
-    def search(self, point, min_dist_till_now=1):
+    def search(self, point, min_dist_till_now=1, increase_value=True):
         if not self._covers_point(point):
             return None, 0
 
@@ -86,32 +67,31 @@ class Node:
             min_dist_till_now = dist_to_self
 
         branches = self._branches
-        for branch_i in range(len(branches)):
+        for branch_i in self._indexes_of_relevant_branches(point):
             branch = branches[branch_i]
             if branch is None:
                 continue
-            res, branch_dist = branch.search(point, min_dist_till_now)
+            res, branch_dist = branch.search(point, min_dist_till_now, increase_value)
             if res is not None:
-                # print('dist to child', branch, '=', branch_dist)
-
                 if branch_dist > dist_to_self:
-                    self._value += dist_to_self
+                    if increase_value:
+                        self._value += dist_to_self
                     return res, dist_to_self
                 else:
-                    self._value_without_branch[branch_i] += dist_to_self
+                    if increase_value:
+                        self._value_without_branch[branch_i] += dist_to_self
                     return res, branch_dist
 
-        # print(self, point, dist_to_self if min_dist_till_now == dist_to_self else 0)
-        self._value += dist_to_self if min_dist_till_now == dist_to_self else 0
+        if increase_value:
+            self._value += dist_to_self if min_dist_till_now == dist_to_self else 0
         return self, dist_to_self
 
     def delete(self):
         if self.is_root():
             return
-        try:
-            self._parent._branches[self._parent._branches.index(self)] = None
-        except Exception as e:
-            return
+        index = self._parent._indexes_of_relevant_branches(self.get_location())[0]
+        self._parent._branches[index] = None
+        # self._parent._value += self._parent._value_without_branch[index]
 
     def recursive_collection(self, result_array, func, traverse_cond_func, collect_cond_func):
         if not traverse_cond_func(self):
@@ -131,6 +111,15 @@ class Node:
         temp = self._parent._value_without_branch[self._parent._branches.index(self)]
 
         return temp - self.get_value()
+
+    def suggest_for_expand(self):
+        res = []
+        if self.is_expandable():
+            res.append(self)
+        res.extend((branch.search(self.get_location(), increase_value=False)
+                    [0] for branch in self.get_branches()))
+        # print('res', res)
+        return res
 
     def reset_value(self):
         self._value = 0
