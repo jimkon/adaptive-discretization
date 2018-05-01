@@ -54,17 +54,14 @@ class Tree:
 
         return node
 
-    def update(self, reward_factor=1):
+    def update(self):
         _points_before = np.array(self.get_points())
 
         to_prune = self.prune_prospectives()
         pruned = 0
         for node in to_prune:
-            # print(node)
             node.delete()
             pruned += 1
-        # print('pruned', pruned)
-        # self.plot()
 
         excess = self.get_current_size() - self.get_size()
         expanded = self.expand_usefull_nodes(pruned - excess)
@@ -102,7 +99,6 @@ class Tree:
         return result
 
     def expand_usefull_nodes(self, n):
-        # print('able to expand', n)
         nodes = sorted(self.get_nodes(recalculate=True), key=lambda node: node.get_value())
         suggestions = list(node.suggest_for_expand() for node in nodes)
 
@@ -114,18 +110,13 @@ class Tree:
                 continue
 
             to_expand = suggestions[i]
-            # print(to_expand)
             new_nodes = []
             for suggestion in to_expand:
                 new_nodes.extend(suggestion.expand(nodes[i].get_location()))
 
-            # print(nodes[i], 'suggests', to_expand, 'and expanded to ', new_nodes)
-            # print(nodes[i], len(new_nodes), new_nodes)
             self._nodes.extend(new_nodes)
-            # print(len(new_nodes), new_nodes)
             count_expantions += len(new_nodes)
 
-        # print(count_expantions, 'expansions, i=', i)
         return count_expantions
 
     def get_node(self, index):
@@ -154,7 +145,6 @@ class Tree:
     def get_mean_error(self):
         if self._total_distance_count == 0:
             return 0
-        # result = self._total_distance / self._total_distance_count
 
         return np.sum(self.get_values()) / self._total_distance_count
 
