@@ -65,16 +65,16 @@ def break_into_batches(array, number_of_batches=-1, size_of_batches=1):
     return res
 
 
-def plot(tree, save=False, path='/home/jim/Desktop/'):
+def plot(tree, save=False, path='/home/jim/Desktop/', red_levels=False):
 
     dims = tree._dimensions
 
     if dims == 1:
-        plot_1d_tree(tree)
+        plot_1d_tree(tree, red_levels=red_levels)
     elif dims == 2:
-        plot_2d_tree(tree)
+        plot_2d_tree(tree, red_levels=red_levels)
     elif dims == 3:
-        plot_3d_tree(tree)
+        plot_3d_tree(tree, red_levels=red_levels)
     else:
         print("plot works for 3 or less dimensional trees")
 
@@ -123,7 +123,7 @@ def plot_values(tree, save=False, path='/home/jim/Desktop/'):
         plt.show()
 
 
-def plot_1d_tree(tree, node_to_point=(lambda node: node.get_location())):
+def plot_1d_tree(tree, red_levels=False):
     plt.figure()
     plt.title('tree size = {}'.format(tree.get_current_size()))
 
@@ -142,8 +142,13 @@ def plot_1d_tree(tree, node_to_point=(lambda node: node.get_location())):
 
         plt.plot(x, y, 'm-', linewidth=0.2)
         size = np.interp(node.get_level(), [1, max_level], [15, 2])
-        color = 'C{}'.format(
-            round(np.interp(node.get_level(), [0, max_level], [0, min(max_level, 9)])))
+        if red_levels:
+            color = '#{:02x}0000'.format(
+                round(np.interp(node.get_level(), [0, max_level], [0, 255])))
+        else:
+            color = 'C{}'.format(
+                round(np.interp(node.get_level(), [0, max_level], [0, min(max_level, 9)])))
+
         plt.plot(x[0], y[0],
                  color, marker='.', markersize=size)
 
@@ -154,7 +159,7 @@ def plot_1d_tree(tree, node_to_point=(lambda node: node.get_location())):
     plt.yticks(range(max_level + 1))
 
 
-def plot_2d_tree(tree, add_3d=True):
+def plot_2d_tree(tree, add_3d=True, red_levels=False):
 
     nodes = tree.get_nodes()
 
@@ -177,8 +182,12 @@ def plot_2d_tree(tree, add_3d=True):
         plt.plot(x, y, 'm-', linewidth=0.2)
 
         size = np.interp(node.get_level(), [1, max_level], [15, 2])
-        color = 'C{}'.format(
-            round(np.interp(node.get_level(), [0, max_level], [0, min(max_level, 9)])))
+        if red_levels:
+            color = '#{:02x}0000'.format(
+                round(np.interp(node.get_level(), [0, max_level], [0, 255])))
+        else:
+            color = 'C{}'.format(
+                round(np.interp(node.get_level(), [0, max_level], [0, min(max_level, 9)])))
         plt.plot(x[0], y[0],
                  color, marker='.', markersize=size)
 
@@ -208,8 +217,12 @@ def plot_2d_tree(tree, add_3d=True):
 
             size = np.interp(node.get_level(), [1, max_level], [15, 2])
 
-            color = 'C{}'.format(
-                round(np.interp(node.get_level(), [0, max_level], [0, min(max_level, 9)])))
+            if red_levels:
+                color = '#{:02x}0000'.format(
+                    round(np.interp(node.get_level(), [0, max_level], [0, 255])))
+            else:
+                color = 'C{}'.format(
+                    round(np.interp(node.get_level(), [0, max_level], [0, min(max_level, 9)])))
             ax2.scatter(point[0], point[1], point[2], color=color, s=size)
 
         ax2.set_xlabel('X')
@@ -220,7 +233,7 @@ def plot_2d_tree(tree, add_3d=True):
         ax2.view_init(30, 5)
 
 
-def plot_3d_tree(tree, node_to_point=(lambda node: node.get_location())):
+def plot_3d_tree(tree, red_levels=False):
     nodes = tree.get_nodes()
     max_level = np.max(list(node.get_level() for node in nodes))
 
@@ -243,8 +256,12 @@ def plot_3d_tree(tree, node_to_point=(lambda node: node.get_location())):
                 [point[2], parent_point[2]], c='m', linewidth=.4)
 
         size = np.interp(node.get_level(), [1, max_level], [15, 2])
-        color = 'C{}'.format(
-            round(np.interp(node.get_level(), [0, max_level], [0, min(max_level, 9)])))
+        if red_levels:
+            color = '#{:02x}0000'.format(
+                round(np.interp(node.get_level(), [0, max_level], [0, 255])))
+        else:
+            color = 'C{}'.format(
+                round(np.interp(node.get_level(), [0, max_level], [0, min(max_level, 9)])))
         ax.scatter(point[0], point[1], point[2], color=color, s=size)
 
     ax.set_xlim(0, 1)
@@ -257,29 +274,49 @@ def plot_3d_tree(tree, node_to_point=(lambda node: node.get_location())):
     ax.view_init(40, 10)
 
 
-def plot_1d_point_density(tree):
+def plot_1d_point_density(tree, resolution=.05):
     nodes = tree.get_nodes()
     points = np.sort(list(node.get_location()[0] for node in nodes))
+    x = np.linspace(0, 1, 1001)
+    # x = np.copy(points)
+    # x = np.insert(x, 0, 0)
+    # x = np.insert(x, len(x), 1)
+    num_of_neighbors = []
+    ranges = []
+    for point in x:
+        range = (resolution / 2 if point - resolution / 2 > 0 else point) \
+            + (resolution / 2 if point + resolution / 2 <= 1 else 1 - point)
+        ranges.append(range)
+        neighbors = np.where(np.abs(points - point) < resolution / 2)[0]
 
-    # dists = list(np.average(list(batch[i + 1] - batch[i] for i in range(len(batch) - 1)))
-    #               for batch in break_into_batches(points, number_of_batches=len(points), size_of_batches=int(len(points) * 0.1)))
-    # density = list(1 / dist for dist in dists)
-    # plt.plot(points, density, label='density (nodes/unit)')
-    value_lambdas = [lambda node: node.get_location()[0],
-                     lambda node: node.get_level()]
-    #, lambda node: node.get_value_increase_if_cut()]
+        num_of_neighbors.append(len(neighbors))
+    ranges = np.array(ranges)
+    num_of_neighbors = np.array(num_of_neighbors)
+    density = np.divide(num_of_neighbors, ranges)
+    plt.plot(x,  apply_func_to_window(density, 10, np.average))
+    # # dists = list(np.average(list(batch[i + 1] - batch[i] for i in range(len(batch) - 1)))
+    # #               for batch in break_into_batches(points, number_of_batches=len(points), size_of_batches=int(len(points) * 0.1)))
+    # # density = list(1 / dist for dist in dists)
+    # # plt.plot(points, density, label='density (nodes/unit)')
+    # value_lambdas = [lambda node: node.get_location()[0],
+    #                  lambda node: node.get_level()]
+    # #, lambda node: node.get_value_increase_if_cut()]
+    #
+    # infos = list(list(l(node) for l in value_lambdas) for node in nodes)
+    #
+    # infos = sorted(infos, key=lambda _: _[0])
+    # levels = list(item[1] for item in infos)
+    # levels = list(np.max(batch) for batch in break_into_batches(levels, -1, int(len(levels) / 10)))
+    # plt.plot(points, levels, label='levels')
+    #
+    # plt.hist(points, bins='auto', histtype='step', label='hist')
+    # for point in points:
+    #     plt.plot([point, point], [0, 0.1 * np.max(density)], 'm', linewidth=.5, label='points')
+    plt.plot(points, np.zeros(len(points)), 'm^')
 
-    infos = list(list(l(node) for l in value_lambdas) for node in nodes)
-
-    infos = sorted(infos, key=lambda _: _[0])
-    levels = list(item[1] for item in infos)
-    levels = list(np.max(batch) for batch in break_into_batches(levels, -1, int(len(levels) / 10)))
-    plt.plot(points, levels, label='levels')
-
-    plt.hist(points, bins='auto', histtype='step', label='hist')
-    for point in points:
-        plt.plot([point, point], [0, 1], 'm', linewidth=.5, label='points')
-
+    plt.xlabel('Space')
+    plt.ylabel('Nodes/{}'.format(resolution))
+    plt.title('Density')
     plt.grid(True)
     plt.legend()
 

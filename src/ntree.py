@@ -199,9 +199,9 @@ class Tree:
         for node in nodes:
             print(node)
 
-    def plot(self):
+    def plot(self, red_levels=False):
         import tree_vis
-        tree_vis.plot(self)
+        tree_vis.plot(self, red_levels=red_levels)
 
     @staticmethod
     def correct_point(point):
