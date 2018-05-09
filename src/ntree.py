@@ -112,7 +112,9 @@ class Tree:
             to_expand = suggestions[i]
             new_nodes = []
             for suggestion in to_expand:
-                new_nodes.extend(suggestion.expand(nodes[i].get_location()))
+                max_new_nodes = n - count_expantions - len(new_nodes)
+                new_nodes.extend(suggestion.expand(
+                    nodes[i].get_location(), new_nodes_limit=max_new_nodes))
 
             self._nodes.extend(new_nodes)
             count_expantions += len(new_nodes)
@@ -189,9 +191,9 @@ class Tree:
         for node in nodes:
             print(node)
 
-    def plot(self, red_levels=False):
+    def plot(self, red_levels=False, save=False):
         import tree_vis
-        tree_vis.plot(self, red_levels=red_levels)
+        tree_vis.plot(self, save=save, red_levels=red_levels)
 
     @staticmethod
     def correct_point(point):

@@ -11,9 +11,6 @@ from ntree import *
 from node import *
 
 
-SAVE_ID = 0
-
-
 def average_timeline(x):
     res = []
     count = 0
@@ -65,7 +62,11 @@ def break_into_batches(array, number_of_batches=-1, size_of_batches=1):
     return res
 
 
-def plot(tree, save=False, path='/home/jim/Desktop/', red_levels=False):
+SAVE_ID = 0
+
+
+def plot(tree, save=False, path='/home/jim/Desktop/temp_result_pics/', red_levels=False):
+    global SAVE_ID
 
     dims = tree._dimensions
 

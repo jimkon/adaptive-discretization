@@ -37,9 +37,13 @@ class Node:
             # raise ArithmeticError('Node: Low == High :{}=={}'.format(
             #     self._low_limit, self._high_limit))
 
-    def expand(self, towards_point=None):
+    def expand(self, towards_point=None, new_nodes_limit=-1):
         if towards_point is None:
             towards_point = self.get_location()
+        if new_nodes_limit == 0:
+            return []
+        elif new_nodes_limit == -1:
+            new_nodes_limit = len(self.BRANCH_MATRIX)
 
         new_nodes = []
         for i in self._indexes_of_relevant_branches(towards_point):
@@ -48,6 +52,9 @@ class Node:
             new_node = Node(self, self.BRANCH_MATRIX[i])
             self._branches[i] = new_node
             new_nodes.append(new_node)
+
+            if len(new_nodes) == new_nodes_limit:
+                break
 
         return new_nodes
 
