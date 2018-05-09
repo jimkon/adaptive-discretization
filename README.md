@@ -3,7 +3,7 @@ Discretizating a space with a fixed number of points is usually trivial. Most of
 
 Nevertheless, sometimes there are some places inside the given range with higher interest. These places can be specific ranges or points that we need more often which make the uniform discretization not optimal. An increased resolution in this range would give us a lower average distance on the searches.
 
-This raise some questions though. Where to increase the resolution and how much? And if we increase the resolution in a region, it's neccesary to decrease the resolution in another region in order to keep the number of points stable.
+This raise some questions though. Where to increase the resolution and how much? And if we increase the resolution in a region, it's necessary to decrease the resolution in another region in order to keep the number of points stable.
 
 
 # My solution (a brief explanation)
@@ -46,3 +46,4 @@ Each node keeps a point and a record of the total distance from this point and t
 
 
 ## More details and graphs [here](https://github.com/jimkon/Adaptive-Discretization/tree/master/docs)
+
