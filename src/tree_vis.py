@@ -319,7 +319,7 @@ def plot_1d_point_density(tree, resolution=.05):
     plt.ylabel('Nodes/{}'.format(resolution))
     plt.title('Density')
     plt.grid(True)
-    plt.legend()
+    # plt.legend()
 
 
 def plot_1dpoint_hist(tree):

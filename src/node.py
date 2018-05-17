@@ -40,7 +40,7 @@ class Node:
     def expand(self, towards_point=None, new_nodes_limit=-1):
         if towards_point is None:
             towards_point = self.get_location()
-        if new_nodes_limit == 0:
+        if new_nodes_limit == 0 or self.__achieved_precision_limit:
             return []
         elif new_nodes_limit == -1:
             new_nodes_limit = len(self.BRANCH_MATRIX)

@@ -37,7 +37,7 @@ class Tree:
 
         init_level = compute_level(avg_nodes, self._branch_factor)
         for i in range(init_level):
-            self.expand_nodes(0)
+            self.add_layer()
 
         self._total_distance = 0
         self._total_distance_count = 0
@@ -161,12 +161,11 @@ class Tree:
         self._total_distance = 0
         self._total_distance_count = 0
 
-    def expand_nodes(self, value_threshold):
+    def add_layer(self):
         to_expand = self.get_expendable_nodes()
         for node in to_expand:
-            if node.get_value() >= value_threshold:
-                new_nodes = node.expand()
-                self._nodes.extend(new_nodes)
+            new_nodes = node.expand()
+            self._nodes.extend(new_nodes)
 
     def get_nodes(self, recalculate=False):
         if recalculate:
