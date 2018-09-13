@@ -204,9 +204,10 @@ class Tree:
         for node in nodes:
             print(node)
 
-    def plot(self, red_levels=False, save=False, filename=''):
+    def plot(self, red_levels=False, save=False, filename='', plot_density_flag=False):
         import tree_vis
-        tree_vis.plot(self, save=save, red_levels=red_levels, path=filename)
+        tree_vis.plot(self, save=save, red_levels=red_levels,
+                      path=filename, plot_density_flag=plot_density_flag)
 
     @staticmethod
     def correct_point(point):

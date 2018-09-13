@@ -62,12 +62,18 @@ def break_into_batches(array, number_of_batches=-1, size_of_batches=1):
     return res
 
 
-def plot(tree, save=False, path='/home/jim/Desktop/temp_result_pics/a.png', red_levels=False):
+def plot(tree, save=False, path='D:/dip/temp_result_pics/a.png', red_levels=False, plot_density_flag=False):
 
     dims = tree._dimensions
 
     if dims == 1:
+        plt.figure()
+        if plot_density_flag:
+            plt.subplot(211)
         plot_1d_tree(tree, red_levels=red_levels)
+        if plot_density_flag:
+            plt.subplot(212)
+            plot_1d_point_density(tree)
     elif dims == 2:
         plot_2d_tree(tree, red_levels=red_levels)
     elif dims == 3:
@@ -121,7 +127,6 @@ def plot_values(tree, save=False, path='/home/jim/Desktop/'):
 
 
 def plot_1d_tree(tree, red_levels=False):
-    plt.figure()
     plt.title('tree size = {}'.format(tree.get_current_size()))
 
     nodes = tree.get_nodes(recalculate=True)
@@ -345,7 +350,7 @@ def plot_values_1d(tree):
 
     value_lambdas = [lambda node: node.get_location()[0],
                      lambda node: node.get_value()]
-    #, lambda node: node.get_value_increase_if_cut()]
+    # , lambda node: node.get_value_increase_if_cut()]
 
     infos = list(list(l(node) for l in value_lambdas) for node in nodes)
 
