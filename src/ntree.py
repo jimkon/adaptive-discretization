@@ -83,6 +83,20 @@ class Tree:
         for sample in samples:
             self.search_nearest_node(sample)
 
+    def adapt_to_1D_pdf(self, pdf, sample_to_resolution_ratio=10, max_iterations=10):
+        resolution = len(pdf)
+        x = np.linspace(0, 1, resolution, endpoint=True)
+        samples = np.random.choice(x, resolution*sample_to_resolution_ratio, p=pdf.flatten())
+
+        print("Adaption begun,", len(samples), "samples, max iterations", max_iterations)
+        count = 0
+        flag = True
+        while flag and count <= max_iterations:
+            self.feed(samples)
+            flag = self.update()
+            print("Iteration", count, ", adapted:", not flag)
+            count += 1
+
     def prune_prospectives(self):
 
         nodes = self.get_prunable_nodes()
