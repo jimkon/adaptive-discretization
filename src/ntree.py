@@ -21,9 +21,9 @@ def compute_level(n, branches_of_each_node):
 
 class Tree:
 
-    def __init__(self, dims, avg_nodes, autoprune=True):
+    def __init__(self, dims, size, autoprune=True):
 
-        self._size = avg_nodes
+        self._size = size
         self._autoprune = autoprune
         self._dimensions = dims
         Node._init_branch_matrix(self._dimensions)
@@ -35,7 +35,7 @@ class Tree:
 
         self._min_level = 0
 
-        init_level = compute_level(avg_nodes, self._branch_factor)
+        init_level = compute_level(size, self._branch_factor)
         for i in range(init_level):
             self.add_layer()
 
@@ -190,9 +190,9 @@ class Tree:
         for node in nodes:
             print(node)
 
-    def plot(self, red_levels=False, save=False):
+    def plot(self, red_levels=False, save=False, filename=''):
         import tree_vis
-        tree_vis.plot(self, save=save, red_levels=red_levels)
+        tree_vis.plot(self, save=save, red_levels=red_levels, path=filename)
 
     @staticmethod
     def correct_point(point):

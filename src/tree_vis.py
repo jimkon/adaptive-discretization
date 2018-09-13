@@ -62,11 +62,7 @@ def break_into_batches(array, number_of_batches=-1, size_of_batches=1):
     return res
 
 
-SAVE_ID = 0
-
-
-def plot(tree, save=False, path='/home/jim/Desktop/temp_result_pics/', red_levels=False):
-    global SAVE_ID
+def plot(tree, save=False, path='/home/jim/Desktop/temp_result_pics/a.png', red_levels=False):
 
     dims = tree._dimensions
 
@@ -80,8 +76,8 @@ def plot(tree, save=False, path='/home/jim/Desktop/temp_result_pics/', red_level
         print("plot works for 3 or less dimensional trees")
 
     if save:
-        plt.savefig("{}/plot{}.png".format(path, SAVE_ID))
-        SAVE_ID += 1
+        plt.savefig(path, dpi=300)
+        np.savetxt(path[:len(path) - 4] + '.txt', tree.get_points())
     else:
         plt.show()
 
