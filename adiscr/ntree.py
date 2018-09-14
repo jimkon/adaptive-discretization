@@ -109,7 +109,7 @@ class Tree:
         print("Adaption begun,", len(samples), "samples, max iterations", max_iterations)
         count = 0
         flag = True
-        while flag and count <= max_iterations:
+        while flag and count < max_iterations:
             flag = self.feed_and_update(samples)
             print("Iteration", count, ", adapted:", not flag)
             count += 1
