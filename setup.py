@@ -13,5 +13,5 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/jimkon/adaptive_discretization",
     packages=['adaptive-discretization']
-    package_dir={'adaptive_discretization': 'adaptive_discretization'},
+    install_requires=['numpy'],
 )
