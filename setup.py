@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="adaptive-discretization",
+    name="adiscr",
     version="0.0.1",
     author="jimkon",
     author_email="kontzedakis_93@hotmail.com",
@@ -12,6 +12,6 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/jimkon/adaptive_discretization",
-    packages=['adaptive-discretization'],
+    packages=['adiscr'],
     install_requires=['numpy']
 )
