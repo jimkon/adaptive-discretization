@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
