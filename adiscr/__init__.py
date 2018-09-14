@@ -1,1 +1,1 @@
-from adiscr.node import *
+from adiscr import *
