@@ -7,8 +7,9 @@ class Node:
 
     BRANCH_MATRIX = None
 
-    def __init__(self, parent, direction, dims=-1):
+    def __init__(self, parent, direction, error_function, dims=-1):
         self._parent = parent
+        self._error_function = error_function
 
         if parent is None:
             self._radius = .5
@@ -49,7 +50,7 @@ class Node:
         for i in self._indexes_of_relevant_branches(towards_point):
             if self._branches[i] is not None:
                 continue
-            new_node = Node(self, self.BRANCH_MATRIX[i])
+            new_node = Node(self, self.BRANCH_MATRIX[i], self._error_function)
             self._branches[i] = new_node
             new_nodes.append(new_node)
 
@@ -82,15 +83,17 @@ class Node:
             if res is not None:
                 if branch_dist > dist_to_self:
                     if increase_value:
-                        self._value += dist_to_self
+                        self._value += self._dist_to_error(dist_to_self)
                     return res, dist_to_self
                 else:
                     if increase_value:
-                        self._value_without_branch[branch_i] += dist_to_self
+                        self._value_without_branch[branch_i] += self._dist_to_error(dist_to_self)
                     return res, branch_dist
 
         if increase_value:
-            self._value += dist_to_self if min_dist_till_now == dist_to_self else 0
+            dist = dist_to_self if min_dist_till_now == dist_to_self else 0
+            error = self._dist_to_error(dist)
+            self._value += error
         return self, dist_to_self
 
     def delete(self):
@@ -107,6 +110,9 @@ class Node:
             result_array.append(func(self))
         for branch in self.get_branches():
             branch.recursive_collection(result_array, func, traverse_cond_func, collect_cond_func)
+
+    def _dist_to_error(self, distance):
+        return self._error_function(distance)
 
     def get_value(self):
         return self._value

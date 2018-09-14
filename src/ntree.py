@@ -21,19 +21,34 @@ def compute_level(n, branches_of_each_node):
 
 class Tree:
 
-    def __init__(self, dims, size, autoprune=True):
+    def __init__(self, dims, size, error_function='direct'):
+        """
+        dims: integer > 0
+        size: integer > 0
+        error_function: ['direct', 'square', 'exp']
+        """
+        assert dims > 0, "dims is < 1"
+        assert size > 0, "size is < 1"
+        # assert error_function in [
+        #     'direct', 'square', 'exp'], "adaption is not one of the following ['direct', 'square', 'exp']"
 
-        self._size = size
-        self._autoprune = autoprune
-        self._dimensions = dims
+        self._dimensions = int(dims)
+        self._size = int(size)
         Node._init_branch_matrix(self._dimensions)
 
+        if error_function is 'direct':
+            self._error_function = lambda d: d
+        elif error_function is 'square':
+            self._error_function = lambda d: d**2
+        elif error_function is 'exp':
+            self._error_function = lambda d: d**0.5
+        else:
+            self._error_function = error_function
+
         self._branch_factor = self._dimensions * 2
-        root = Node(None, None, dims)
+        root = Node(None, None, self._error_function, dims)
         self._nodes = [root]
         self._root = root
-
-        self._min_level = 0
 
         init_level = compute_level(size, self._branch_factor)
         for i in range(init_level):
@@ -83,19 +98,19 @@ class Tree:
         for sample in samples:
             self.search_nearest_node(sample)
 
-    def adapt_to_1D_pdf(self, pdf, sample_to_resolution_ratio=10, max_iterations=10):
-        resolution = len(pdf)
-        x = np.linspace(0, 1, resolution, endpoint=True)
-        samples = np.random.choice(x, resolution*sample_to_resolution_ratio, p=pdf.flatten())
+    def feed_and_update(self, samples):
+        self.feed(samples)
+        return self.update()
 
+    def adapt_to_samples(self, samples, max_iterations=10):
         print("Adaption begun,", len(samples), "samples, max iterations", max_iterations)
         count = 0
         flag = True
         while flag and count <= max_iterations:
-            self.feed(samples)
-            flag = self.update()
+            flag = self.feed_and_update(samples)
             print("Iteration", count, ", adapted:", not flag)
             count += 1
+        return not flag
 
     def prune_prospectives(self):
 
