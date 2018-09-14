@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import types
 
 from adiscr.node import *
 from adiscr.tree_vis import *
@@ -25,10 +26,12 @@ class Tree:
         """
         dims: integer > 0
         size: integer > 0
-        error_function: ['direct', 'sqrt', 'square', 'cubic']
+        error_function: ['direct', 'sqrt', 'square', 'cubic'] or a lambda function
         """
         assert dims > 0, "dims is < 1"
         assert size > 0, "size is < 1"
+        assert (error_function in ['direct', 'sqrt', 'square', 'cubic']) or isinstance(
+            error_function, types.FunctionType), "error_function has to be one of ['direct', 'sqrt', 'square', 'cubic'] or a function"
 
         self._dimensions = int(dims)
         self._size = int(size)
@@ -72,14 +75,14 @@ class Tree:
     def update(self):
         _points_before = np.array(self.get_points())
 
-        to_prune = self.prune_prospectives()
+        to_prune = self._prune_prospectives()
         pruned = 0
         for node in to_prune:
             node.delete()
             pruned += 1
 
         excess = self.get_current_size() - self.get_size()
-        expanded = self.expand_usefull_nodes(pruned - excess)
+        expanded = self._expand_usefull_nodes(pruned - excess)
 
         self._refresh_nodes()
         self._reset_values()
@@ -112,7 +115,7 @@ class Tree:
             count += 1
         return not flag
 
-    def prune_prospectives(self):
+    def _prune_prospectives(self):
 
         nodes = self.get_prunable_nodes()
 
@@ -127,7 +130,7 @@ class Tree:
 
         return result
 
-    def expand_usefull_nodes(self, n):
+    def _expand_usefull_nodes(self, n):
         nodes = sorted(self.get_nodes(recalculate=True), key=lambda node: node.get_value())
         suggestions = list(node.suggest_for_expand() for node in nodes)
 
