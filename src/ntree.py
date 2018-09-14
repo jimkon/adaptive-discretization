@@ -25,12 +25,10 @@ class Tree:
         """
         dims: integer > 0
         size: integer > 0
-        error_function: ['direct', 'square', 'exp']
+        error_function: ['direct', 'sqrt', 'square', 'cubic']
         """
         assert dims > 0, "dims is < 1"
         assert size > 0, "size is < 1"
-        # assert error_function in [
-        #     'direct', 'square', 'exp'], "adaption is not one of the following ['direct', 'square', 'exp']"
 
         self._dimensions = int(dims)
         self._size = int(size)
@@ -38,10 +36,12 @@ class Tree:
 
         if error_function is 'direct':
             self._error_function = lambda d: d
+        elif error_function is 'sqrt':
+            self._error_function = lambda d: d**0.5
         elif error_function is 'square':
             self._error_function = lambda d: d**2
-        elif error_function is 'exp':
-            self._error_function = lambda d: d**0.5
+        elif error_function is 'cubic':
+            self._error_function = lambda d: d**3
         else:
             self._error_function = error_function
 
