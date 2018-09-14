@@ -1,1 +1,1 @@
-from tree import Tree
+from ntree import Tree
