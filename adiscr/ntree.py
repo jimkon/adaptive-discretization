@@ -2,6 +2,7 @@ import numpy as np
 import math
 
 from adiscr.node import *
+from adiscr.tree_vis import *
 
 
 def compute_level(n, branches_of_each_node):
@@ -219,9 +220,8 @@ class Tree:
             print(node)
 
     def plot(self, red_levels=False, save=False, filename='', plot_density_flag=False):
-        import tree_vis
-        tree_vis.plot(self, save=save, red_levels=red_levels,
-                      path=filename, plot_density_flag=plot_density_flag)
+        plot(self, save=save, red_levels=red_levels,
+             path=filename, plot_density_flag=plot_density_flag)
 
     @staticmethod
     def correct_point(point):
