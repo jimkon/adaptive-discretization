@@ -1,1 +1,1 @@
-from adiscr import *
+from adiscr.ntree import Tree

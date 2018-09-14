@@ -5,9 +5,9 @@ from mpl_toolkits.mplot3d import Axes3D
 
 import numpy as np
 
-from ntree import *
+from adiscr.ntree import *
 
-from node import *
+from adiscr.node import *
 
 
 def average_timeline(x):

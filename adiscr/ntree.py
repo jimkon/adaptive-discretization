@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-from node import *
+from adiscr.node import *
 
 
 def compute_level(n, branches_of_each_node):
