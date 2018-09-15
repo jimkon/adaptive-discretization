@@ -2,6 +2,6 @@ __pycache__
 .cache
 *.ipynb_checkpoints
 tests
-
+*.pyc
 
 clipboard.*
