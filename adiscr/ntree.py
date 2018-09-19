@@ -6,18 +6,22 @@ from adiscr.node import *
 from adiscr.tree_vis import *
 
 
-def compute_level(n, branches_of_each_node):
-    total = 0
-    power = -1
-    prev = 0
-    while total <= n:
-        power += 1
-        prev = total
-        total += branches_of_each_node**power
+def actions_per_level(level, dims):
+    return 2**(level*dims)
 
-    if total - n > n - prev:
-        return max(power - 1, 0)
-    return max(power, 0)
+
+def compute_level(n, dims):
+    actions = [1]
+    level = 0
+
+    while actions[level] < n:
+        level += 1
+        actions.append(actions[level-1]+actions_per_level(level, dims))
+
+    if actions[level]-n < n-actions[level-1]:
+        return level
+    else:
+        return level-1
 
 
 class Tree:
@@ -53,7 +57,7 @@ class Tree:
         self._nodes = [root]
         self._root = root
 
-        init_level = compute_level(size, self._branch_factor)
+        init_level = compute_level(size, self._dimensions)
         for i in range(init_level):
             self.add_layer()
 
