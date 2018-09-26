@@ -18,7 +18,7 @@ def compute_level(n, dims):
         level += 1
         actions.append(actions[level-1]+actions_per_level(level, dims))
 
-    if actions[level]-n < n-actions[level-1]:
+    if actions[level] == n:
         return level
     else:
         return level-1
