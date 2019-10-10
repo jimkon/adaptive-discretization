@@ -1,8 +1,8 @@
 # Install
 pip install git+https://github.com/jimkon/adaptive-discretization
 
-
-[# More pages and demos](https://jimkon.github.io/adaptive-discretization/)
+# More pages and demos
+[Notebooks](https://jimkon.github.io/adaptive-discretization/)
 
 # Problem description
 Discretizating a space with a fixed number of points is usually trivial. Most of the times a uniform distribution fits our needs because there is no specific interest on any range inside the given space. That actually means that the uniformly distributed points we assigned will match the uniform distribution of the **continuous** points that we need. So when we search the nearest neighbor of a given continuous point, the **mean distance** of the corresponding discrete point will be the minimum.
