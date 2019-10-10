@@ -5,4 +5,8 @@ Here is a more detailed report of the problem and the solution using some jupyte
 2.  [My approach](https://jimkon.github.io/adaptive-discretization/my_approach.html)
 3.  [Efficiency limitations](https://jimkon.github.io/adaptive-discretization/limits.html)
 
-[Some demos](https://jimkon.github.io/adaptive-discretization/demos)
+# Demos
+1.  [Initialization demo](https://jimkon.github.io/adaptive-discretization/demos/initialization.html)
+2.  [Adapting procedure](https://jimkon.github.io/adaptive-discretization/demos/adapting_procedure.html)
+3.  [Multilobe PDF](https://jimkon.github.io/adaptive-discretization/demos/multilobe_pdfs.html)
+4.  [Size-to-ME relation](https://jimkon.github.io/adaptive-discretization/demos/relation_of_size_and_ME.html)
