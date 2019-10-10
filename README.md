@@ -10,7 +10,7 @@ This raise some questions though. Where to increase the resolution and how much?
 
 
 # My solution (a brief explanation)
-(or a detailed one [here](https://github.com/jimkon/Adaptive-Discretization/tree/master/docs))
+
 
 In this library, i propose a solution that makes possible the adaption of the discretized points with an automated way. The goal is to minimize the mean distance for every kind of distribution while remaining a steady number of discrete points.
 
@@ -33,7 +33,7 @@ Another thing that is worth mentioning is that this architecture is set to work 
 #### Initialization
 The starting tree is uniform and full grown until the level that brings us closest and below to the requested size. On the next few steps the tree will expand to the requested size. The loss that come from this procedure is very little because the expansion is very quick.  But it is a good idea to choose a size close to one of the initial sizes to minimize this.
 
-[More and graphs for initialization](https://github.com/jimkon/Adaptive-Discretization/blob/master/docs/initialization.ipynb)
+
 
 
 #### Adaption
@@ -48,5 +48,5 @@ Each node keeps a point and a record of the total distance from this point and t
 
 
 
-## More details and graphs [here](https://github.com/jimkon/Adaptive-Discretization/tree/master/docs)
+
 
