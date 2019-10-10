@@ -1,7 +1,7 @@
 # Install
 pip install git+https://github.com/jimkon/adaptive-discretization
 
-# More pages and demos
+# Examples
 [Notebooks](https://jimkon.github.io/adaptive-discretization/)
 
 # Problem description
